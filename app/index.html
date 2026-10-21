@@ -1,0 +1,537 @@
+<title>MLIP Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* layout: sticky header, hub grid of model cards, model page with tab-switched lenses */
+:root{
+  color-scheme: dark;
+  --bg:#12161a; --bg-raised:#171c21; --bg-sunken:#0e1115;
+  --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+  --fg:#eef1f0; --fg-muted:#9aa5a8; --fg-faint:#6b7579;
+  --accent:#49c3d8; --accent-strong:#8fe0ee; --accent-wash:rgba(73,195,216,0.14);
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --series-epistemic:#3987e5; --series-aleatoric:#d95926;
+  --font-sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --bg:#f6f7f5; --bg-raised:#ffffff; --bg-sunken:#edeeec;
+    --border:rgba(11,11,11,0.12); --border-strong:rgba(11,11,11,0.22);
+    --fg:#14181a; --fg-muted:#52514e; --fg-faint:#898781;
+    --accent:#0f7f91; --accent-strong:#0b6575; --accent-wash:rgba(15,127,145,0.09);
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#f6f7f5; --bg-raised:#ffffff; --bg-sunken:#edeeec;
+  --border:rgba(11,11,11,0.12); --border-strong:rgba(11,11,11,0.22);
+  --fg:#14181a; --fg-muted:#52514e; --fg-faint:#898781;
+  --accent:#0f7f91; --accent-strong:#0b6575; --accent-wash:rgba(15,127,145,0.09);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);line-height:1.5}
+h1,h2,h3{text-wrap:balance;font-weight:600;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+.mono{font-family:var(--font-mono)}
+.page{
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  max-width:860px;margin:0 auto;
+}
+.crumb{color:var(--fg-muted);font-size:13px;display:flex;align-items:baseline;gap:8px}
+.crumb a{text-decoration:none;cursor:pointer}
+.crumb a:hover{text-decoration:underline}
+main{padding-block:28px 60px}
+.hub-intro{max-width:560px;margin-bottom:28px}
+.hub-intro h1{font-size:26px;margin-bottom:8px}
+.hub-intro p{color:var(--fg-muted);font-size:15px}
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.model-card{
+  background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;
+  padding:18px;cursor:pointer;transition:border-color .15s;
+  display:flex;flex-direction:column;gap:10px;min-width:0;
+}
+.model-card:hover{border-color:var(--border-strong)}
+.model-card .name{font-family:var(--font-mono);font-weight:600;font-size:16px}
+.chip{
+  display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:11px;
+  letter-spacing:.02em;text-transform:uppercase;padding:3px 8px;border-radius:999px;
+  background:var(--accent-wash);color:var(--accent-strong);border:1px solid var(--border);
+  width:fit-content;
+}
+.card-scope{font-size:13px;color:var(--fg-muted)}
+.card-cta{font-size:13px;color:var(--accent);margin-top:auto}
+.model-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+.model-header h1{font-family:var(--font-mono);font-size:24px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:18px 0 22px;overflow-x:auto}
+.tab-btn{
+  font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--fg-muted);
+  background:none;border:none;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;
+}
+.tab-btn[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--fg)}
+.section{margin-bottom:30px}
+.section h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-faint);margin-bottom:10px}
+.prose{font-size:15px;color:var(--fg);max-width:620px}
+.prose + .prose{margin-top:10px}
+.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+@media (max-width:480px){.scope-grid{grid-template-columns:1fr}}
+.scope-col h3{font-size:12px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px}
+.scope-col.good h3{color:var(--good)}
+.scope-col.not h3{color:var(--critical)}
+.scope-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.scope-list li{padding-left:16px;position:relative}
+.scope-col.good li::before{content:"+";position:absolute;left:0;color:var(--good);font-weight:700}
+.scope-col.not li::before{content:"\2013";position:absolute;left:0;color:var(--critical);font-weight:700}
+.placeholder-box{
+  border:1px dashed var(--border-strong);border-radius:8px;padding:16px;
+  color:var(--fg-faint);font-size:13px;max-width:560px;
+}
+.illustrative-note{
+  font-size:12px;color:var(--fg-faint);font-style:italic;max-width:620px;margin-bottom:16px;
+  padding:8px 12px;border-left:2px solid var(--border-strong);
+}
+.annotation-section{margin-top:10px;max-width:620px}
+.annotation-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.annotation-item{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.annotation-item .who{font-family:var(--font-mono);font-size:12px;color:var(--accent-strong)}
+.annotation-item .when{font-size:11px;color:var(--fg-faint);margin-left:6px}
+.annotation-item .text{font-size:14px;margin-top:4px}
+.annotation-empty{font-size:13px;color:var(--fg-faint);padding:12px 0}
+.annotation-form{display:flex;flex-direction:column;gap:8px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:12px}
+.annotation-form .row{display:flex;gap:8px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.field label{font-size:11px;color:var(--fg-faint);text-transform:uppercase;letter-spacing:.03em}
+input[type=text],textarea,select{
+  font-family:var(--font-sans);font-size:14px;background:var(--bg-raised);color:var(--fg);
+  border:1px solid var(--border);border-radius:6px;padding:8px 10px;resize:vertical;
+}
+input[type=text]:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn{
+  font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--bg);background:var(--accent);
+  border:none;border-radius:6px;padding:9px 14px;cursor:pointer;align-self:flex-start;
+}
+.btn:hover{background:var(--accent-strong)}
+.btn:disabled{opacity:.5;cursor:default}
+.form-note{font-size:11px;color:var(--fg-faint)}
+.finding-item{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.finding-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip-causal{background:rgba(217,89,38,0.14);color:var(--series-aleatoric)}
+.finding-phenomenon{font-size:14px}
+.finding-subset{font-size:12px;color:var(--fg-muted)}
+.finding-writeup{font-size:14px;color:var(--fg);white-space:pre-wrap}
+.ood-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;max-width:620px}
+.ood-label{flex:0 0 190px;font-size:13px;min-width:0}
+.ood-track{flex:1;height:10px;background:var(--bg-sunken);border-radius:999px;overflow:hidden;position:relative}
+.ood-fill{height:100%;border-radius:999px}
+.ood-score{flex:0 0 34px;font-family:var(--font-mono);font-size:12px;text-align:right}
+.ood-legend{display:flex;gap:14px;font-size:12px;color:var(--fg-muted);margin-bottom:14px;flex-wrap:wrap}
+.ood-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.ood-note{font-size:12px;color:var(--fg-faint);margin-top:-6px;margin-bottom:12px;max-width:560px}
+.decomp-row{margin-bottom:14px;max-width:560px}
+.decomp-label{font-size:13px;margin-bottom:5px}
+.decomp-bar{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--bg-sunken)}
+.decomp-seg.epistemic{background:var(--series-epistemic)}
+.decomp-seg.aleatoric{background:var(--series-aleatoric)}
+.decomp-legend{display:flex;gap:16px;font-size:12px;color:var(--fg-muted);margin-top:8px}
+.decomp-legend .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.decomp-disabled{font-size:13px;color:var(--fg-faint);max-width:560px}
+footer{border-top:1px solid var(--border);padding-block:18px 32px;margin-top:10px}
+footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
+[hidden]{display:none!important}
+</style>
+
+<div class="page">
+  <main id="main"></main>
+  <footer>
+    <div class="page" style="padding-inline:0">
+      <p>Prototype illustration built for a hackathon. Descriptive, Mechanistic and Bayesian content for each model is seeded by the authors; items under "Community" are live and visible to everyone who opens this page.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var ARCHITECTURES = {
+  mace: {
+    name: "MACE",
+    note: "MACE passes messages between atoms using equivariant features built from up to body-order-4 interactions within a local cutoff radius. That gives strong data efficiency and physically-consistent (rotation/translation equivariant) predictions, but it also means long-range effects beyond the cutoff, and interactions above the chosen body order, are only approximated through the receptive field built up across message-passing layers — not represented directly."
+  }
+};
+
+var MODELS = [
+  {
+    id: "mace-mp-0",
+    name: "MACE-MP-0",
+    architectureId: "mace",
+    scopeGood: ["Bulk inorganic crystals", "Structure relaxation & elastic properties", "High-throughput materials screening"],
+    scopeNot: ["Organic molecules", "Surfaces & interfaces (sparse coverage)", "Molecular liquids (e.g. water)"],
+    trainingSummary: "Trained on relaxation trajectories from the Materials Project, spanning 89 chemical elements across bulk inorganic crystal structures. No molecular, surface, or liquid configurations appear in the training distribution.",
+    supportsDecomposition: true,
+    decompositionNote: "Shown here for an illustrative 4-member MACE-MP-0 committee — the standard single-checkpoint release does not ship ensemble uncertainty on its own.",
+    decompositionExamples: [
+      { label: "Bulk Si, relaxed (0 K)", epistemic: 18, aleatoric: 6 },
+      { label: "Fe–Ni random solid solution", epistemic: 52, aleatoric: 14 }
+    ],
+    oodExamples: [
+      { label: "Bulk Si (diamond cubic)", score: 12, tier: "good", note: "Close to the training distribution — an ordered bulk elemental semiconductor." },
+      { label: "Fe–Ni random solid solution", score: 48, tier: "warning", note: "Disordered alloy chemistry is underrepresented relative to ordered compounds in the training set." },
+      { label: "Liquid water, 300K AIMD snapshot", score: 91, tier: "critical", note: "No molecular liquids in training data — matches the declared scope exclusion." }
+    ]
+  },
+  {
+    id: "mace-off23",
+    name: "MACE-OFF23",
+    architectureId: "mace",
+    scopeGood: ["Small organic molecules", "Gas-phase conformers & dynamics", "Drug-like molecule screening"],
+    scopeNot: ["Bulk inorganic solids", "Metals & alloys", "Periodic / crystalline systems"],
+    trainingSummary: "Trained on the SPICE dataset of organic-molecule conformations at a quantum-chemistry level of theory. No periodic or crystalline structures appear in the training distribution.",
+    supportsDecomposition: false,
+    oodExamples: [
+      { label: "Caffeine, gas-phase conformer", score: 9, tier: "good", note: "A small drug-like organic molecule — squarely inside SPICE coverage." },
+      { label: "Aspirin + 4 explicit waters", score: 55, tier: "warning", note: "Explicit solvation shells are only sparsely covered." },
+      { label: "Bulk NaCl crystal", score: 95, tier: "critical", note: "No periodic solids in training data — matches the declared scope exclusion." }
+    ]
+  }
+];
+
+function modelById(id){ for (var i=0;i<MODELS.length;i++){ if (MODELS[i].id===id) return MODELS[i]; } return null; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function timeAgo(ts){
+  var s = Math.max(1, Math.round((Date.now()-ts)/1000));
+  if (s<60) return s+"s ago";
+  var m = Math.round(s/60); if (m<60) return m+"m ago";
+  var h = Math.round(m/60); if (h<24) return h+"h ago";
+  var d = Math.round(h/24); return d+"d ago";
+}
+
+/* ---- db wiring ---- */
+var dbPromise = (window.claude && window.claude.use) ? window.claude.use("db").catch(function(){return null;}) : Promise.resolve(null);
+var activeUnsubs = [];
+function teardownSubs(){ activeUnsubs.forEach(function(u){ try{u();}catch(e){} }); activeUnsubs = []; }
+
+/* generic live annotation list+form, mounted into `el` */
+function mountAnnotations(el, opts){
+  // opts: {collection, modelId, nodeId(optional), placeholder, emptyText}
+  el.innerHTML =
+    '<div class="annotation-list" data-role="list"><p class="annotation-empty">Loading…</p></div>' +
+    '<form class="annotation-form" data-role="form">' +
+      '<div class="row">' +
+        '<div class="field"><label>Your name or email</label><input type="text" name="who" maxlength="80" required></div>' +
+      '</div>' +
+      '<div class="field"><label>'+esc(opts.placeholder||"What did you observe?")+'</label><textarea name="text" rows="2" maxlength="600" required></textarea></div>' +
+      '<button type="submit" class="btn">Share with the community</button>' +
+      '<p class="form-note" data-role="note">Visible to everyone who opens this page, right away. No review queue.</p>' +
+    '</form>';
+
+  var listEl = el.querySelector('[data-role="list"]');
+  var formEl = el.querySelector('[data-role="form"]');
+  var noteEl = el.querySelector('[data-role="note"]');
+
+  function render(items){
+    if (!items.length){
+      listEl.innerHTML = '<p class="annotation-empty">'+esc(opts.emptyText||"Nothing shared yet — be the first.")+'</p>';
+      return;
+    }
+    listEl.innerHTML = items.map(function(it){
+      return '<div class="annotation-item">' +
+        '<span class="who mono">'+esc(it.who||"anonymous")+'</span><span class="when">'+timeAgo(it.createdAt||Date.now())+'</span>' +
+        '<div class="text">'+esc(it.text)+'</div></div>';
+    }).join("");
+  }
+
+  dbPromise.then(function(db){
+    if (!db){
+      noteEl.textContent = "Sign in to claude.ai to view or add live community entries in this preview.";
+      formEl.querySelector("button").disabled = true;
+      listEl.innerHTML = '<p class="annotation-empty">'+esc(opts.emptyText||"Nothing shared yet.")+'</p>';
+      return;
+    }
+    var col = db.collection(opts.collection);
+    var q = col.where("modelId", "==", opts.modelId);
+    if (opts.nodeId) q = q.where("nodeId", "==", opts.nodeId);
+    q = q.orderBy("createdAt", "desc").limit(50);
+    var unsub = q.onSnapshot(function(snap){
+      var items = snap.docs.map(function(d){ return d.data(); });
+      render(items);
+    }, function(){ listEl.innerHTML = '<p class="annotation-empty">Couldn’t load — try again later.</p>'; });
+    activeUnsubs.push(unsub);
+
+    formEl.addEventListener("submit", function(e){
+      e.preventDefault();
+      var who = formEl.who.value.trim();
+      var text = formEl.text.value.trim();
+      if (!who || !text) return;
+      var btn = formEl.querySelector("button"); btn.disabled = true;
+      var body = { modelId: opts.modelId, who: who, text: text, createdAt: Date.now() };
+      if (opts.nodeId) body.nodeId = opts.nodeId;
+      col.add(body).then(function(){
+        formEl.reset(); btn.disabled = false;
+      }).catch(function(){
+        noteEl.textContent = "Couldn’t save that — you may need to be signed in to claude.ai.";
+        btn.disabled = false;
+      });
+    });
+  });
+}
+
+/* ---- Mechanistic Findings feed ---- */
+var CLAIM_TYPES = {
+  detection: { label: "Detection" },
+  causal: { label: "Causal / control" }
+};
+
+function mountMechanisticLens(panel, model){
+  panel.innerHTML =
+    '<div class="section">' +
+      '<h2>Mechanistic findings</h2>' +
+      '<p class="prose" style="margin-bottom:12px">A live feed of interpretability results from the community — the Hub doesn’t compute or visualize any circuits itself. A real checkpoint has hundreds of millions of parameters, and every method produces its own notion of “circuit,” so each finding names its own subset in its own terms.</p>' +
+      '<div class="annotation-list" data-role="list"><p class="annotation-empty">Loading…</p></div>' +
+      '<form class="annotation-form" data-role="form">' +
+        '<div class="row">' +
+          '<div class="field"><label>Your name or email</label><input type="text" name="who" maxlength="80" required></div>' +
+          '<div class="field"><label>Claim type</label>' +
+            '<select name="claimType" required>' +
+              '<option value="detection">Detection — probing this subset detects a phenomenon</option>' +
+              '<option value="causal">Causal / control — ablating or steering it changes a phenomenon</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="row">' +
+          '<div class="field"><label>Phenomenon</label><input type="text" name="phenomenon" maxlength="140" placeholder="e.g. local coordination number, OOD sensitivity" required></div>' +
+          '<div class="field"><label>Subset / circuit (your own terms)</label><input type="text" name="subset" maxlength="200" placeholder="e.g. attention heads 2 & 5, interaction layer 2" required></div>' +
+        '</div>' +
+        '<div class="field"><label>Method & evidence</label><textarea name="writeup" rows="3" maxlength="1200" placeholder="What you did and what you found" required></textarea></div>' +
+        '<button type="submit" class="btn">Report this finding</button>' +
+        '<p class="form-note" data-role="note">Visible to everyone who opens this page, right away. No review queue.</p>' +
+      '</form>' +
+    '</div>';
+
+  var listEl = panel.querySelector('[data-role="list"]');
+  var formEl = panel.querySelector('[data-role="form"]');
+  var noteEl = panel.querySelector('[data-role="note"]');
+
+  function render(items){
+    if (!items.length){
+      listEl.innerHTML = '<p class="annotation-empty">No findings reported yet for this model — be the first to share a circuit you’ve found.</p>';
+      return;
+    }
+    listEl.innerHTML = items.map(function(it){
+      var ct = CLAIM_TYPES[it.claimType] || CLAIM_TYPES.detection;
+      var chipClass = it.claimType === "causal" ? "chip chip-causal" : "chip";
+      return '<div class="finding-item">' +
+        '<div class="finding-head"><span class="'+chipClass+'">'+esc(ct.label)+'</span>' +
+        '<span class="who mono">'+esc(it.who||"anonymous")+'</span><span class="when">'+timeAgo(it.createdAt||Date.now())+'</span></div>' +
+        '<div class="finding-phenomenon">Phenomenon: <strong>'+esc(it.phenomenon)+'</strong></div>' +
+        '<div class="finding-subset mono">Subset: '+esc(it.subset)+'</div>' +
+        '<div class="finding-writeup">'+esc(it.writeup)+'</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  dbPromise.then(function(db){
+    if (!db){
+      noteEl.textContent = "Sign in to claude.ai to view or add live findings in this preview.";
+      formEl.querySelector("button").disabled = true;
+      listEl.innerHTML = '<p class="annotation-empty">No findings reported yet for this model.</p>';
+      return;
+    }
+    var col = db.collection("mechanisticFindings");
+    var q = col.where("modelId", "==", model.id).orderBy("createdAt", "desc").limit(50);
+    var unsub = q.onSnapshot(function(snap){
+      render(snap.docs.map(function(d){ return d.data(); }));
+    }, function(){ listEl.innerHTML = '<p class="annotation-empty">Couldn’t load — try again later.</p>'; });
+    activeUnsubs.push(unsub);
+
+    formEl.addEventListener("submit", function(e){
+      e.preventDefault();
+      var who = formEl.who.value.trim();
+      var phenomenon = formEl.phenomenon.value.trim();
+      var subset = formEl.subset.value.trim();
+      var writeup = formEl.writeup.value.trim();
+      var claimType = formEl.claimType.value;
+      if (!who || !phenomenon || !subset || !writeup) return;
+      var btn = formEl.querySelector("button"); btn.disabled = true;
+      col.add({ modelId: model.id, claimType: claimType, phenomenon: phenomenon, subset: subset, writeup: writeup, who: who, createdAt: Date.now() }).then(function(){
+        formEl.reset(); btn.disabled = false;
+      }).catch(function(){
+        noteEl.textContent = "Couldn’t save that — you may need to be signed in to claude.ai.";
+        btn.disabled = false;
+      });
+    });
+  });
+}
+
+/* ---- Bayesian lens charts ---- */
+var TIER_COLOR = { good: "var(--good)", warning: "var(--warning)", serious: "var(--serious)", critical: "var(--critical)" };
+var TIER_LABEL = { good: "In distribution", warning: "Borderline", critical: "Out of distribution" };
+
+function renderOodChart(model){
+  var html = '<div class="ood-legend">' +
+    Object.keys(TIER_LABEL).map(function(t){
+      return '<span><span class="dot" style="background:'+TIER_COLOR[t]+'"></span>'+TIER_LABEL[t]+'</span>';
+    }).join("") + '</div>';
+  html += model.oodExamples.map(function(ex){
+    var color = TIER_COLOR[ex.tier] || TIER_COLOR.warning;
+    return '<div class="ood-row">' +
+      '<div class="ood-label">'+esc(ex.label)+'</div>' +
+      '<div class="ood-track"><div class="ood-fill" style="width:'+ex.score+'%;background:'+color+'"></div></div>' +
+      '<div class="ood-score mono">'+ex.score+'</div>' +
+      '</div>' +
+      '<p class="ood-note">'+esc(ex.note)+'</p>';
+  }).join("");
+  return html;
+}
+
+function renderDecompositionChart(model){
+  if (!model.supportsDecomposition){
+    return '<p class="decomp-disabled">This checkpoint’s release doesn’t expose a method for separating epistemic from aleatoric uncertainty — showing out-of-distribution distance only, above.</p>';
+  }
+  var html = '<p class="illustrative-note">'+esc(model.decompositionNote)+'</p>';
+  html += model.decompositionExamples.map(function(ex){
+    var total = ex.epistemic + ex.aleatoric;
+    var ePct = Math.round(ex.epistemic/total*100), aPct = 100-ePct;
+    return '<div class="decomp-row"><div class="decomp-label">'+esc(ex.label)+'</div>' +
+      '<div class="decomp-bar">' +
+        '<div class="decomp-seg epistemic" style="width:'+ePct+'%"></div>' +
+        '<div class="decomp-seg aleatoric" style="width:'+aPct+'%"></div>' +
+      '</div></div>';
+  }).join("");
+  html += '<div class="decomp-legend">' +
+    '<span><span class="dot" style="background:var(--series-epistemic)"></span>Epistemic (model doesn’t know)</span>' +
+    '<span><span class="dot" style="background:var(--series-aleatoric)"></span>Aleatoric (system is noisy)</span>' +
+    '</div>';
+  return html;
+}
+
+/* ---- lens panels ---- */
+function renderDescriptive(panel, model){
+  var arch = ARCHITECTURES[model.architectureId];
+  panel.innerHTML =
+    '<div class="section"><h2>Scope</h2><div class="scope-grid">' +
+      '<div class="scope-col good"><h3>Good for</h3><ul class="scope-list">'+model.scopeGood.map(function(s){return "<li>"+esc(s)+"</li>";}).join("")+'</ul></div>' +
+      '<div class="scope-col not"><h3>Not for</h3><ul class="scope-list">'+model.scopeNot.map(function(s){return "<li>"+esc(s)+"</li>";}).join("")+'</ul></div>' +
+    '</div></div>' +
+    '<div class="section"><h2>Training data</h2><p class="prose">'+esc(model.trainingSummary)+'</p></div>' +
+    '<div class="section"><h2>Architecture ('+esc(arch.name)+')</h2><p class="prose">'+esc(arch.note)+'</p></div>' +
+    '<div class="section"><h2>Benchmark figures</h2><div class="placeholder-box">No sourced benchmark numbers entered yet. A real deployment would show energy/force error here, each figure linked to the paper, leaderboard, or run it came from — no number without a source.</div></div>' +
+    '<div class="section"><h2>Known failure modes <span class="chip" style="margin-left:6px">Community</span></h2><div data-role="kfm"></div></div>';
+
+  mountAnnotations(panel.querySelector('[data-role="kfm"]'), {
+    collection: "knownFailureModes",
+    modelId: model.id,
+    placeholder: "Describe a case where this model performed poorly",
+    emptyText: "No failure modes reported yet — be the first to share one."
+  });
+}
+
+function renderMechanistic(panel, model){ mountMechanisticLens(panel, model); }
+
+function renderBayesian(panel, model){
+  panel.innerHTML =
+    '<div class="section"><h2>Out-of-distribution detection</h2>' +
+      '<p class="illustrative-note">Illustrative example data — stands in for a real distance-to-training-distribution pipeline, precomputed offline per example structure.</p>' +
+      '<div data-role="ood"></div>' +
+    '</div>' +
+    '<div class="section"><h2>Epistemic vs. aleatoric</h2><div data-role="decomp"></div></div>' +
+    '<div class="section"><h2>Community notes <span class="chip" style="margin-left:6px">Community</span></h2><div data-role="bayesnotes"></div></div>';
+
+  panel.querySelector('[data-role="ood"]').innerHTML = renderOodChart(model);
+  panel.querySelector('[data-role="decomp"]').innerHTML = renderDecompositionChart(model);
+  mountAnnotations(panel.querySelector('[data-role="bayesnotes"]'), {
+    collection: "bayesianAnnotations",
+    modelId: model.id,
+    placeholder: "Dispute an OOD call, or report a miscalibration you observed",
+    emptyText: "No community notes yet — be the first to add one."
+  });
+}
+
+/* ---- views & router ---- */
+var LENS_TABS = [
+  { key: "descriptive", label: "Descriptive", render: renderDescriptive },
+  { key: "mechanistic", label: "Mechanistic", render: renderMechanistic },
+  { key: "bayesian", label: "Bayesian", render: renderBayesian }
+];
+
+function lastTabKey(modelId){
+  try { return localStorage.getItem("mlip-hub:tab:"+modelId) || "descriptive"; } catch(e){ return "descriptive"; }
+}
+function saveTabKey(modelId, key){
+  try { localStorage.setItem("mlip-hub:tab:"+modelId, key); } catch(e){}
+}
+
+function renderHub(main){
+  main.innerHTML =
+    '<div class="hub-intro"><h1>MLIP Hub</h1>' +
+    '<p>What each machine-learning interatomic potential checkpoint is — and isn’t — good for, from the training-data facts to internal mechanism to uncertainty.</p></div>' +
+    '<div class="model-grid" data-role="grid"></div>';
+  var grid = main.querySelector('[data-role="grid"]');
+  grid.innerHTML = MODELS.map(function(m){
+    return '<div class="model-card" data-model="'+m.id+'">' +
+      '<span class="chip">'+esc(ARCHITECTURES[m.architectureId].name)+'</span>' +
+      '<div class="name">'+esc(m.name)+'</div>' +
+      '<div class="card-scope">'+esc(m.scopeGood[0])+', '+esc(m.scopeGood[1])+'…</div>' +
+      '<div class="card-cta">View model page →</div>' +
+      '</div>';
+  }).join("");
+  grid.querySelectorAll("[data-model]").forEach(function(card){
+    card.addEventListener("click", function(){ location.hash = "#"+card.getAttribute("data-model"); });
+  });
+}
+
+function renderModel(main, model){
+  main.innerHTML =
+    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← MLIP Hub</a></div>' +
+    '<div class="model-header"><h1>'+esc(model.name)+'</h1><span class="chip">'+esc(ARCHITECTURES[model.architectureId].name)+'</span></div>' +
+    '<div class="tabs" role="tablist" data-role="tabs"></div>' +
+    '<div class="panel" data-role="panel"></div>';
+
+  main.querySelector('[data-role="back"]').addEventListener("click", function(){ location.hash = ""; });
+
+  var tabsEl = main.querySelector('[data-role="tabs"]');
+  var panelEl = main.querySelector('[data-role="panel"]');
+  var current = lastTabKey(model.id);
+  if (!LENS_TABS.some(function(t){return t.key===current;})) current = "descriptive";
+
+  function selectTab(key){
+    current = key;
+    saveTabKey(model.id, key);
+    teardownSubs();
+    tabsEl.querySelectorAll(".tab-btn").forEach(function(b){
+      b.setAttribute("aria-selected", String(b.getAttribute("data-key")===key));
+    });
+    var tab = LENS_TABS.filter(function(t){return t.key===key;})[0];
+    tab.render(panelEl, model);
+  }
+
+  tabsEl.innerHTML = LENS_TABS.map(function(t){
+    return '<button class="tab-btn" role="tab" data-key="'+t.key+'" aria-selected="false">'+t.label+'</button>';
+  }).join("");
+  tabsEl.querySelectorAll(".tab-btn").forEach(function(b){
+    b.addEventListener("click", function(){ selectTab(b.getAttribute("data-key")); });
+  });
+
+  selectTab(current);
+}
+
+function route(){
+  teardownSubs();
+  var main = document.getElementById("main");
+  var hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  var model = hash ? modelById(hash) : null;
+  if (model) renderModel(main, model);
+  else renderHub(main);
+}
+
+window.addEventListener("hashchange", route);
+route();
+
+})();
+</script>
