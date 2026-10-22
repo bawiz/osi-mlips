@@ -1,0 +1,7 @@
+# Recommender is a scoped exception to the Hub's flat-browsing rule
+
+The Hub's own definition says it's browsed as a flat list/grid with no filtering, search, or side-by-side comparison view — a viewer scans the list and looks at one Model Page at a time. The Recommender's entire premise ("which MLIP is useful for my use case") requires reasoning across Models, which is exactly what that rule rules out. We decided not to retire the rule: the browsing grid stays flat exactly as before, and the Recommender is a separate, explicitly-named exception — a distinct chat surface on the landing page, not a filter or comparison view bolted onto the grid.
+
+**Why:** the flat-grid decision was deliberate (a viewer scans and looks at one Model Page at a time), and nothing about wanting a recommender chat implies that decision was wrong for browsing. Carving out one named exception keeps the original property legible — a future reader sees "no comparison view" in CONTEXT.md, finds the Recommender, and sees it's a documented departure rather than a rule someone forgot to enforce.
+
+**Considered options:** retire the no-comparison/no-search rule generally, since the Recommender needs cross-Model reasoning anyway — rejected, it would unscope a decision that still holds for the grid itself and invite future filter/search UI that was never evaluated. Keep the Recommender scoped to one Model at a time (whichever Model Page it's opened from) — rejected, it can't answer the actual question ("which model should I use") that motivates the feature.

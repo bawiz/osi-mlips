@@ -181,6 +181,25 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 .graph-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .graph-details{margin-top:10px;font-size:13px;color:var(--fg-muted);min-height:38px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
 .graph-details strong{color:var(--fg)}
+.recommender{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px;margin:22px 0 34px}
+.recommender h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-faint);margin-bottom:6px}
+.rec-intro{font-size:14px;color:var(--fg-muted);margin-bottom:14px;max-width:640px}
+.rec-messages{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;max-height:420px;overflow-y:auto}
+.rec-msg{display:flex}
+.rec-msg.user{justify-content:flex-end}
+.rec-bubble{max-width:560px;padding:10px 14px;border-radius:10px;font-size:14px;white-space:pre-wrap}
+.rec-msg.user .rec-bubble{background:var(--accent-wash);color:var(--fg);border:1px solid var(--border)}
+.rec-msg.assistant .rec-bubble{background:var(--bg-sunken);color:var(--fg);border:1px solid var(--border)}
+.rec-msg.error .rec-bubble{background:rgba(208,59,59,0.12);border-color:var(--critical);color:var(--fg)}
+.rec-cite{font-family:var(--font-mono);font-size:11px;color:var(--accent-strong);text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:1px 6px;margin:0 2px;white-space:nowrap}
+.rec-cite:hover{text-decoration:underline}
+.rec-cite.illustrative{color:var(--warning);border-color:var(--warning)}
+.rec-empty{font-size:13px;color:var(--fg-faint);padding:6px 0}
+.rec-form{display:flex;gap:8px;align-items:flex-end}
+.rec-form textarea{flex:1;min-height:40px;max-height:120px}
+.rec-stop{font-family:var(--font-sans);font-size:12px;color:var(--fg-muted);background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer}
+.rec-note{font-size:11px;color:var(--fg-faint);margin-top:6px}
+.fm-card.rec-highlight{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 [hidden]{display:none!important}
 </style>
 
@@ -255,6 +274,9 @@ function timeAgo(ts){
 var dbPromise = (window.claude && window.claude.use) ? window.claude.use("db").catch(function(){return null;}) : Promise.resolve(null);
 var activeUnsubs = [];
 function teardownSubs(){ activeUnsubs.forEach(function(u){ try{u();}catch(e){} }); activeUnsubs = []; }
+
+/* ---- sample wiring (Recommender) ---- */
+var samplePromise = (window.claude && window.claude.use) ? window.claude.use("sample").catch(function(){return null;}) : Promise.resolve(null);
 
 /* generic live annotation list+form, mounted into `el` */
 function mountAnnotations(el, opts){
@@ -372,11 +394,12 @@ function renderCitations(ids, refsById){
   }).filter(Boolean).join("; ");
 }
 
-function mountKnownFailureModes(container, model){
+function mountKnownFailureModes(container, model, focusFmId){
   container.classList.add("fm-grid");
   container.innerHTML = '<p class="annotation-empty">Loading…</p>';
   var communityByFm = {};
   var lit = null;
+  var focusApplied = false;
 
   function draw(){
     if (!lit || !lit.phenomena.length){
@@ -405,7 +428,7 @@ function mountKnownFailureModes(container, model){
             return '<li>'+esc(m.text)+(cites?' ('+cites+')':'')+'</li>';
           }).join("")+'</ul></p>'
         : "";
-      return '<div class="fm-card">' +
+      return '<div class="fm-card" id="fm-'+esc(fm.id)+'">' +
         '<div class="fm-head"><span class="fm-name">'+esc(fm.name)+'</span>' +
           (fm.evidenceGrade ? '<span class="fm-grade '+gradeClass+'" title="'+esc(gradeTitle)+'">'+esc(fm.evidenceGrade)+'</span>' : '') +
         '</div>' +
@@ -427,6 +450,15 @@ function mountKnownFailureModes(container, model){
         '</div>' +
       '</div>';
     }).join("");
+
+    if (focusFmId && !focusApplied){
+      var focusTarget = container.querySelector("#fm-" + focusFmId);
+      if (focusTarget){
+        focusTarget.classList.add("rec-highlight");
+        focusTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+        focusApplied = true;
+      }
+    }
 
     container.querySelectorAll("[data-toggle]").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -539,7 +571,7 @@ function layoutFamilyGraph(graph){
   return pos;
 }
 
-function mountFamilyGraph(container, model){
+function mountFamilyGraph(container, model, focusNodeId){
   container.innerHTML = '<p class="annotation-empty">Loading…</p>';
   fetchLiterature(model.id).then(function(raw){
     var lit = raw ? adaptLiterature(raw, model.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {}, knownVariants: [] };
@@ -619,6 +651,172 @@ function mountFamilyGraph(container, model){
     network.on("hoverNode", function(p){ showDetails(p.node); });
     network.on("click", function(p){ if (p.nodes.length) showDetails(p.nodes[0]); });
     network.on("blurNode", function(){ detailsEl.textContent = "Hover or click a node for details. Drag to pan, scroll to zoom."; });
+
+    if (focusNodeId && byNodeId[focusNodeId]){
+      network.selectNodes([focusNodeId]);
+      network.focus(focusNodeId, { scale: 1.1, animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+      showDetails(focusNodeId);
+    }
+  });
+}
+
+/* ---- Recommender (ADR-0005: scoped exception to flat browsing; ADR-0006: curator-only grounding) ---- */
+var RECOMMENDER_RULES = [
+  "You are the Recommender for the Usefulness Boundary Hub, a catalogue of MLIP (machine learning interatomic potential) checkpoints.",
+  "A viewer describes a use case; your job is to say which catalogued Model(s) fit it, and why, grounded ONLY in the CATALOGUED_DATA JSON given below.",
+  "Hard rule: never use outside or general knowledge about these architectures or models beyond what CATALOGUED_DATA states. If nothing in it is relevant to the question, say so plainly instead of guessing or filling the gap from what you already know.",
+  "You may name a Known Variant (an entry in a model's knownVariants[], not a full Model) when it is the best fit for the use case — e.g. when a failure mode's mitigations point to one — but you must say explicitly that it is a lightweight stub with no full Model Page (no Lenses), not a fully catalogued Model.",
+  "A model's \"ood\" and \"decomposition\" fields are illustrative placeholder data standing in for a real pipeline, not validated benchmark numbers — say so in the reply whenever you cite one, and set that citation's illustrative field to true.",
+  "Write \"reply\" as plain prose sentences and real line breaks only — no markdown syntax (no **, #, or - bullets), since it renders as plain text.",
+  "Reply with ONLY one JSON object, no markdown code fences and no text outside it: {\"reply\": string, \"citations\": array}.",
+  "In \"reply\", cite a source immediately after the claim it supports using the literal token {{n}} where n is a 1-based integer — no other citation style (no footnotes, no links, no bare model names standing in as a citation).",
+  "Every {{n}} used in \"reply\" must have a matching entry in \"citations\": {\"n\": integer, \"kind\": \"model\"|\"failureMode\"|\"knownVariant\", \"modelId\": string, \"failureModeId\": string (only if kind is failureMode), \"variantId\": string (only if kind is knownVariant), \"label\": short string, \"illustrative\": true (omit otherwise)}.",
+  "If the question isn't about choosing or understanding a catalogued Model, redirect politely, still in the same JSON format, with an empty citations array."
+].join(" ");
+
+var recommenderCorpusPromise = null;
+function buildRecommenderCorpus(){
+  if (recommenderCorpusPromise) return recommenderCorpusPromise;
+  recommenderCorpusPromise = Promise.all(MODELS.map(function(m){
+    return fetchLiterature(m.id).then(function(raw){
+      return { m: m, lit: raw ? adaptLiterature(raw, m.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {}, knownVariants: [] } };
+    });
+  })).then(function(entries){
+    return entries.map(function(e){
+      var m = e.m, lit = e.lit, arch = ARCHITECTURES[m.architectureId];
+      return {
+        id: m.id, name: m.name, architecture: arch.name, architectureNote: arch.note,
+        scopeGood: m.scopeGood, scopeNot: m.scopeNot, trainingSummary: m.trainingSummary,
+        ood: (m.oodExamples || []).map(function(x){ return { label: x.label, score: x.score, tier: x.tier, note: x.note }; }),
+        decomposition: m.supportsDecomposition ? { note: m.decompositionNote, examples: m.decompositionExamples } : null,
+        failureModes: lit.phenomena.map(function(fm){
+          return {
+            id: fm.id, name: fm.name, symptom: fm.symptom, rootCause: fm.rootCause || null,
+            evidenceGrade: fm.evidenceGrade || null, statusInLaterVariants: fm.statusNote || null,
+            literatureEvidenceCount: fm.literatureEvidence.length,
+            mitigations: fm.mitigations.map(function(mm){ return mm.text; })
+          };
+        }),
+        knownVariants: lit.knownVariants.map(function(v){
+          return {
+            id: v.id, name: v.name, note: v.note, derivedFrom: v.derivedFrom,
+            fixes: v.fixes.map(function(fx){ return { failureModeId: fx.failureModeId, note: fx.note || null }; })
+          };
+        })
+      };
+    });
+  });
+  return recommenderCorpusPromise;
+}
+
+function recommenderCiteHref(c){
+  if (!c || !c.modelId) return null;
+  if (c.kind === "model") return "#" + c.modelId;
+  if (c.kind === "failureMode" && c.failureModeId) return "#" + c.modelId + "/fm/" + c.failureModeId;
+  if (c.kind === "knownVariant" && c.variantId) return "#graph/" + c.modelId + "/" + c.variantId;
+  return null;
+}
+
+function renderRecommenderReply(reply, citations){
+  var byN = {};
+  (citations || []).forEach(function(c){ if (c && c.n != null) byN[c.n] = c; });
+  var html = esc(reply || "");
+  return html.replace(/\{\{(\d+)\}\}/g, function(whole, n){
+    var c = byN[n];
+    if (!c) return "";
+    var href = recommenderCiteHref(c);
+    var cls = "rec-cite" + (c.illustrative ? " illustrative" : "");
+    var label = esc(c.label || c.modelId || "source");
+    var title = c.illustrative ? "Illustrative example data, not a validated benchmark" : "Jump to source";
+    return href ? '<a class="'+cls+'" href="'+href+'" title="'+title+'">'+label+'</a>' : '<span class="'+cls+'" title="'+title+'">'+label+'</span>';
+  });
+}
+
+function mountRecommender(container){
+  container.className = "recommender";
+  container.innerHTML =
+    '<h2>Ask the Recommender</h2>' +
+    '<p class="rec-intro">Describe what you need to simulate — the Recommender answers only from this Hub’s own catalogued Models, failure modes and evidence, and says so when the catalogue doesn’t cover something.</p>' +
+    '<div class="rec-messages" data-role="messages"><p class="rec-empty">Ask away — e.g. “I need to relax bulk silicon defects, what should I use?”</p></div>' +
+    '<form class="rec-form" data-role="form">' +
+      '<textarea name="q" rows="1" maxlength="600" placeholder="Describe your use case…" required></textarea>' +
+      '<button type="submit" class="btn">Ask</button>' +
+      '<button type="button" class="rec-stop" data-role="stop" hidden>Stop</button>' +
+    '</form>' +
+    '<p class="rec-note" data-role="note"></p>';
+
+  var messagesEl = container.querySelector('[data-role="messages"]');
+  var formEl = container.querySelector('[data-role="form"]');
+  var stopBtn = container.querySelector('[data-role="stop"]');
+  var noteEl = container.querySelector('[data-role="note"]');
+  var turns = [];
+  var ctl = null;
+
+  function addMessage(role, html){
+    if (messagesEl.querySelector(".rec-empty")) messagesEl.innerHTML = "";
+    var row = document.createElement("div");
+    row.className = "rec-msg " + role;
+    row.innerHTML = '<div class="rec-bubble">'+html+'</div>';
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return row;
+  }
+
+  samplePromise.then(function(sample){
+    if (!sample){
+      noteEl.textContent = "Sign in to claude.ai to ask the Recommender in this preview.";
+      formEl.querySelector("button[type=submit]").disabled = true;
+      return;
+    }
+
+    formEl.addEventListener("submit", function(e){
+      e.preventDefault();
+      var q = formEl.q.value.trim();
+      if (!q) return;
+      formEl.q.value = "";
+      formEl.querySelector("button[type=submit]").disabled = true;
+      noteEl.textContent = "";
+      addMessage("user", esc(q));
+      var thinkingRow = addMessage("assistant", "<em>Thinking…</em>");
+      turns.push({ role: "user", content: q });
+
+      buildRecommenderCorpus().then(function(corpus){
+        ctl = new AbortController();
+        stopBtn.hidden = false;
+        var rulesTurn = { role: "user", content: RECOMMENDER_RULES + "\n\nCATALOGUED_DATA (JSON, the only source you may use): " + JSON.stringify(corpus) };
+        return sample.json([rulesTurn].concat(turns), { cache: false, signal: ctl.signal });
+      }).then(function(result){
+        turns.push({ role: "assistant", content: JSON.stringify(result) });
+        thinkingRow.querySelector(".rec-bubble").innerHTML = renderRecommenderReply(result && result.reply, result && result.citations);
+      }).catch(function(err){
+        var code = err && err.code;
+        turns.pop();
+        if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" || code === "capability_disabled" || code === "capability_removed"){
+          thinkingRow.remove();
+          noteEl.textContent = "Sign in to claude.ai to ask the Recommender in this preview.";
+          formEl.querySelector("button[type=submit]").disabled = true;
+          return;
+        }
+        formEl.q.value = q;
+        if (code === "cancelled"){
+          thinkingRow.remove();
+          return;
+        }
+        thinkingRow.className = "rec-msg assistant error";
+        var msg = code === "invalid_json" ? "Got an answer that wasn’t valid — try asking again."
+          : code === "refused" ? "Claude declined to answer that — try rephrasing."
+          : code === "empty_completion" ? "Didn’t get an answer — try asking differently."
+          : code === "rate_limited" ? "Hit a usage limit — try again shortly."
+          : "Something went wrong — try again.";
+        thinkingRow.querySelector(".rec-bubble").textContent = msg;
+      }).finally(function(){
+        stopBtn.hidden = true;
+        ctl = null;
+        formEl.querySelector("button[type=submit]").disabled = false;
+      });
+    });
+
+    stopBtn.addEventListener("click", function(){ if (ctl) ctl.abort(); });
   });
 }
 
@@ -752,7 +950,7 @@ function renderDecompositionChart(model){
 }
 
 /* ---- lens panels ---- */
-function renderDescriptive(panel, model){
+function renderDescriptive(panel, model, focusFmId){
   var arch = ARCHITECTURES[model.architectureId];
   panel.innerHTML =
     '<div class="section"><h2>Scope</h2><div class="scope-grid">' +
@@ -769,7 +967,7 @@ function renderDescriptive(panel, model){
       '<div data-role="kfm"></div>' +
     '</div>';
 
-  mountKnownFailureModes(panel.querySelector('[data-role="kfm"]'), model);
+  mountKnownFailureModes(panel.querySelector('[data-role="kfm"]'), model, focusFmId);
 }
 
 function renderMechanistic(panel, model){ mountMechanisticLens(panel, model); }
@@ -832,7 +1030,9 @@ function renderHub(main){
     '</div>' +
     '<div class="hub-visual">'+renderBoundaryMotif()+'</div>' +
     '<p class="hub-stats"><span class="mono">'+MODELS.length+'</span> model'+(MODELS.length===1?"":"s")+' catalogued · <span class="mono">3</span> lenses each · evidence and findings added live by the community</p>' +
+    '<div data-role="recommender"></div>' +
     '<div class="model-grid" data-role="grid"></div>';
+  mountRecommender(main.querySelector('[data-role="recommender"]'));
   var grid = main.querySelector('[data-role="grid"]');
   grid.innerHTML = MODELS.map(function(m){
     return '<div class="model-card" data-model="'+m.id+'">' +
@@ -847,7 +1047,8 @@ function renderHub(main){
   });
 }
 
-function renderModel(main, model){
+function renderModel(main, model, opts){
+  opts = opts || {};
   main.innerHTML =
     '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← Usefulness Boundary Hub</a></div>' +
     '<div class="model-header"><h1>'+esc(model.name)+'</h1><span class="chip">'+esc(ARCHITECTURES[model.architectureId].name)+'</span></div>' +
@@ -860,10 +1061,10 @@ function renderModel(main, model){
 
   var tabsEl = main.querySelector('[data-role="tabs"]');
   var panelEl = main.querySelector('[data-role="panel"]');
-  var current = lastTabKey(model.id);
+  var current = opts.focusFmId ? "descriptive" : lastTabKey(model.id);
   if (!LENS_TABS.some(function(t){return t.key===current;})) current = "descriptive";
 
-  function selectTab(key){
+  function selectTab(key, focusFmId){
     current = key;
     saveTabKey(model.id, key);
     teardownSubs();
@@ -871,7 +1072,7 @@ function renderModel(main, model){
       b.setAttribute("aria-selected", String(b.getAttribute("data-key")===key));
     });
     var tab = LENS_TABS.filter(function(t){return t.key===key;})[0];
-    tab.render(panelEl, model);
+    tab.render(panelEl, model, focusFmId);
   }
 
   tabsEl.innerHTML = LENS_TABS.map(function(t){
@@ -881,17 +1082,17 @@ function renderModel(main, model){
     b.addEventListener("click", function(){ selectTab(b.getAttribute("data-key")); });
   });
 
-  selectTab(current);
+  selectTab(current, opts.focusFmId);
 }
 
-function renderFamilyGraphView(main, model){
+function renderFamilyGraphView(main, model, focusNodeId){
   main.innerHTML =
     '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← '+esc(model.name)+'</a></div>' +
     '<div class="model-header"><h1>Lineage &amp; evidence graph</h1><span class="chip">'+esc(model.name)+'</span></div>' +
     '<p class="prose" style="margin-bottom:16px">Known variants branching from this checkpoint, which of its failure modes each one fixes, and which failure modes are still open. Hover a node or line for details.</p>' +
     '<div data-role="graph"></div>';
   main.querySelector('[data-role="back"]').addEventListener("click", function(){ location.hash = model.id; });
-  mountFamilyGraph(main.querySelector('[data-role="graph"]'), model);
+  mountFamilyGraph(main.querySelector('[data-role="graph"]'), model, focusNodeId);
 }
 
 function route(){
@@ -899,12 +1100,18 @@ function route(){
   var main = document.getElementById("main");
   var hash = decodeURIComponent(location.hash.replace(/^#/, ""));
   if (hash.indexOf("graph/") === 0){
-    var gModel = modelById(hash.slice(6));
-    if (gModel){ renderFamilyGraphView(main, gModel); return; }
+    var gParts = hash.slice(6).split("/");
+    var gModel = modelById(gParts[0]);
+    if (gModel){ renderFamilyGraphView(main, gModel, gParts[1] || null); return; }
   }
-  var model = hash ? modelById(hash) : null;
-  if (model) renderModel(main, model);
-  else renderHub(main);
+  var mParts = hash.split("/");
+  var model = mParts[0] ? modelById(mParts[0]) : null;
+  if (model){
+    var focusFmId = (mParts[1] === "fm" && mParts[2]) ? mParts[2] : null;
+    renderModel(main, model, { focusFmId: focusFmId });
+    return;
+  }
+  renderHub(main);
 }
 
 window.addEventListener("hashchange", route);
