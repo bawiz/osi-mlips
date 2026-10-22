@@ -8,6 +8,52 @@
     "direct+inherited": "Both direct tests and inherited evidence exist.",
     "direct (mixed)": "Direct tests exist but results conflict across studies."
   },
+  "known_variants": [
+    {
+      "id": "mace-mp-0b",
+      "name": "MACE-MP-0b",
+      "note": "Adds core repulsion and corrects isolated-atom energies for more stable MD.",
+      "derived_from": "mace-mp-0",
+      "fixes": [{"failure_mode": "F8"}]
+    },
+    {
+      "id": "mace-mp-0b2",
+      "name": "MACE-MP-0b2",
+      "note": "Improves high-pressure stability via repulsion regularisation and extra high-pressure training examples.",
+      "derived_from": "mace-mp-0b",
+      "fixes": [{"failure_mode": "F7"}]
+    },
+    {
+      "id": "mace-mp-0b3",
+      "name": "MACE-MP-0b3",
+      "note": "Improves under-estimated optical phonon modes.",
+      "derived_from": "mace-mp-0b2",
+      "fixes": [{"failure_mode": "F2", "note": "Partial fix only — MACE-OMAT-0 does better."}]
+    },
+    {
+      "id": "mace-mpa-0",
+      "name": "MACE-MPA-0",
+      "note": "Retrained on an expanded Materials Project + Alexandria dataset.",
+      "derived_from": "mace-mp-0",
+      "fixes": [
+        {"failure_mode": "F1", "note": "Softening reduced, not eliminated."},
+        {"failure_mode": "F6"},
+        {"failure_mode": "F7"},
+        {"failure_mode": "F12", "note": "Partial improvement only."}
+      ]
+    },
+    {
+      "id": "mace-omat-0",
+      "name": "MACE-OMAT-0",
+      "note": "Retrained on the OMat24 dataset.",
+      "derived_from": "mace-mp-0",
+      "fixes": [
+        {"failure_mode": "F1", "note": "Softening reduced, not eliminated."},
+        {"failure_mode": "F2"},
+        {"failure_mode": "F3", "note": "Recommended for phonon-heavy work."}
+      ]
+    }
+  ],
   "failure_modes": [
     {
       "id": "F1",

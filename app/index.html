@@ -173,6 +173,14 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 .ev-cite a{color:var(--fg-faint);text-decoration:underline}
 .fm-add-toggle{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0}
 .fm-add-form{margin-top:8px}
+.graph-link{font-size:13px;margin-bottom:4px}
+.graph-link a{cursor:pointer;text-decoration:none}
+.graph-link a:hover{text-decoration:underline}
+.graph-legend{display:flex;gap:16px;font-size:12px;color:var(--fg-muted);margin-bottom:16px;flex-wrap:wrap}
+.graph-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.graph-wrap{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.graph-details{margin-top:10px;font-size:13px;color:var(--fg-muted);min-height:38px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.graph-details strong{color:var(--fg)}
 [hidden]{display:none!important}
 </style>
 
@@ -185,6 +193,7 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -343,7 +352,13 @@ function adaptLiterature(raw, modelId){
       mitigations: mitigationsByFm[fm.id] || []
     };
   });
-  return { refsById: refsById, phenomena: phenomena, evidenceGradeLegend: raw.evidence_grades || {} };
+  var knownVariants = (raw.known_variants || []).map(function(v){
+    return {
+      id: v.id, name: v.name, note: v.note, derivedFrom: v.derived_from,
+      fixes: (v.fixes || []).map(function(fx){ return { failureModeId: fx.failure_mode, note: fx.note || "" }; })
+    };
+  });
+  return { refsById: refsById, phenomena: phenomena, evidenceGradeLegend: raw.evidence_grades || {}, knownVariants: knownVariants };
 }
 
 function citationHref(ref){ return ref.url || (ref.doi ? "https://doi.org/" + ref.doi : null); }
@@ -443,7 +458,7 @@ function mountKnownFailureModes(container, model){
   }
 
   fetchLiterature(model.id).then(function(raw){
-    lit = raw ? adaptLiterature(raw, model.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {} };
+    lit = raw ? adaptLiterature(raw, model.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {}, knownVariants: [] };
     draw();
   });
 
@@ -458,6 +473,152 @@ function mountKnownFailureModes(container, model){
       draw();
     });
     activeUnsubs.push(unsub);
+  });
+}
+
+/* ---- Lineage & Evidence Graph (Graph View over typed storage, ADR-0004) ---- */
+function buildFamilyGraph(model, lit){
+  var variants = lit.knownVariants || [];
+  var byId = {};
+  variants.forEach(function(v){ byId[v.id] = v; });
+  function depthOf(id){
+    if (id === model.id) return 0;
+    var v = byId[id];
+    if (!v) return 1;
+    return 1 + depthOf(v.derivedFrom);
+  }
+  var fixedFmIds = {};
+  variants.forEach(function(v){ v.fixes.forEach(function(fx){ fixedFmIds[fx.failureModeId] = true; }); });
+
+  var nodes = [{ id: model.id, type: "model", label: model.name, depth: 0, row: 0 }];
+  var edges = [];
+  var byDepth = {};
+  variants.forEach(function(v){ var d = depthOf(v.id); (byDepth[d] = byDepth[d] || []).push(v); });
+  Object.keys(byDepth).sort(function(a,b){return a-b;}).forEach(function(dKey){
+    byDepth[dKey].forEach(function(v, i){
+      nodes.push({ id: v.id, type: "variant", label: v.name, note: v.note, depth: +dKey, row: i });
+      edges.push({ from: v.derivedFrom, to: v.id, type: "lineage" });
+    });
+  });
+  var maxVariantDepth = Object.keys(byDepth).length ? Math.max.apply(null, Object.keys(byDepth).map(Number)) : 0;
+  var fmDepth = maxVariantDepth + 1;
+  lit.phenomena.forEach(function(fm, i){
+    nodes.push({
+      id: fm.id, type: "failureMode", label: fm.id + " · " + fm.name, depth: fmDepth, row: i,
+      fixed: !!fixedFmIds[fm.id], symptom: fm.symptom, evidence: fm.literatureEvidence
+    });
+  });
+  variants.forEach(function(v){
+    v.fixes.forEach(function(fx){
+      edges.push({ from: v.id, to: fx.failureModeId, type: "fixes", note: fx.note });
+    });
+  });
+  return { nodes: nodes, edges: edges, refsById: lit.refsById };
+}
+
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function layoutFamilyGraph(graph){
+  var colGap = 190, gapNormal = 44, gapTight = 32, topPad = 20;
+  var byDepth = {};
+  graph.nodes.forEach(function(n){ (byDepth[n.depth] = byDepth[n.depth] || []).push(n); });
+  var pos = {};
+  Object.keys(byDepth).forEach(function(dKey){
+    var list = byDepth[dKey].slice().sort(function(a, b){
+      var av = a.type === "failureMode" ? (a.fixed ? 0 : 1) : -1;
+      var bv = b.type === "failureMode" ? (b.fixed ? 0 : 1) : -1;
+      if (av !== bv) return av - bv;
+      return a.row - b.row;
+    });
+    var y = topPad;
+    list.forEach(function(n){
+      pos[n.id] = { x: (+dKey) * colGap, y: y };
+      y += (n.type === "failureMode" && !n.fixed) ? gapTight : gapNormal;
+    });
+  });
+  return pos;
+}
+
+function mountFamilyGraph(container, model){
+  container.innerHTML = '<p class="annotation-empty">Loading…</p>';
+  fetchLiterature(model.id).then(function(raw){
+    var lit = raw ? adaptLiterature(raw, model.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {}, knownVariants: [] };
+    if (!lit.knownVariants.length && !lit.phenomena.length){
+      container.innerHTML = '<p class="annotation-empty">No lineage or failure-mode data yet for this model.</p>';
+      return;
+    }
+    var graph = buildFamilyGraph(model, lit);
+    var byNodeId = {};
+    graph.nodes.forEach(function(n){ byNodeId[n.id] = n; });
+
+    container.innerHTML =
+      '<div class="graph-legend">' +
+        '<span><span class="dot" style="background:var(--accent)"></span>Base model</span>' +
+        '<span><span class="dot" style="background:var(--accent-strong)"></span>Known variant</span>' +
+        '<span><span class="dot" style="background:var(--good)"></span>Failure mode — fixed by a variant</span>' +
+        '<span><span class="dot" style="background:var(--critical)"></span>Failure mode — still open</span>' +
+      '</div>' +
+      '<div class="graph-wrap" data-role="canvas"></div>' +
+      '<div class="graph-details" data-role="details">Hover or click a node for details. Drag to pan, scroll to zoom.</div>';
+
+    if (!window.vis){
+      container.querySelector('[data-role="canvas"]').innerHTML = '<p class="annotation-empty">Graph renderer failed to load.</p>';
+      return;
+    }
+
+    var accent = cssVar("--accent"), accentStrong = cssVar("--accent-strong"), good = cssVar("--good"),
+        critical = cssVar("--critical"), fg = cssVar("--fg"), border = cssVar("--border-strong");
+    var positions = layoutFamilyGraph(graph);
+
+    var visNodes = graph.nodes.map(function(n){
+      var p = positions[n.id];
+      if (n.type === "model"){
+        return { id: n.id, label: n.label, x: p.x, y: p.y, shape: "dot", size: 15, color: { background: accent, border: accent }, font: { color: fg, face: "IBM Plex Sans", size: 14, bold: true } };
+      }
+      if (n.type === "variant"){
+        return { id: n.id, label: n.label, x: p.x, y: p.y, shape: "dot", size: 10, color: { background: accentStrong, border: accentStrong }, font: { color: fg, face: "IBM Plex Sans", size: 13 } };
+      }
+      var fmColor = n.fixed ? good : critical;
+      return { id: n.id, label: n.label, x: p.x, y: p.y, shape: "box", margin: 5, color: { background: fmColor, border: fmColor }, font: { color: "#ffffff", face: "IBM Plex Sans", size: 12 } };
+    });
+    var visEdges = graph.edges.map(function(e){
+      var color = e.type === "lineage" ? accent : good;
+      return { from: e.from, to: e.to, color: { color: color, highlight: color }, width: 1.5, arrows: { to: { enabled: true, scaleFactor: 0.5 } }, smooth: { type: "cubicBezier", forceDirection: "horizontal", roundness: 0.45 } };
+    });
+
+    var network = new vis.Network(container.querySelector('[data-role="canvas"]'), {
+      nodes: new vis.DataSet(visNodes),
+      edges: new vis.DataSet(visEdges)
+    }, {
+      autoResize: true,
+      height: "600px",
+      physics: false,
+      interaction: { hover: true, dragNodes: true, dragView: true, zoomView: true, hoverConnectedEdges: true },
+      edges: { color: { color: border } }
+    });
+
+    network.fit({ animation: false });
+
+    var detailsEl = container.querySelector('[data-role="details"]');
+    function showDetails(id){
+      var n = byNodeId[id];
+      if (!n){ detailsEl.textContent = "Hover or click a node for details. Drag to pan, scroll to zoom."; return; }
+      var kind = n.type === "model" ? "Model" : n.type === "variant" ? "Known variant" : "Known failure mode (" + (n.fixed ? "fixed" : "open") + ")";
+      var html = '<strong>' + esc(n.label) + '</strong> <span class="mono" style="color:var(--fg-faint)">· ' + esc(kind) + '</span>';
+      if (n.note) html += '<div style="margin-top:4px">' + esc(n.note) + '</div>';
+      if (n.symptom) html += '<div style="margin-top:4px">' + esc(n.symptom) + '</div>';
+      if (n.evidence && n.evidence.length){
+        html += '<div style="margin-top:6px"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--fg-faint)">Evidence</strong><ul style="margin:4px 0 0 18px;padding:0">' +
+          n.evidence.map(function(ev){
+            var cites = renderCitations(ev.referenceIds, graph.refsById);
+            return '<li style="margin-bottom:4px">' + esc(ev.text) + (cites ? ' <span style="color:var(--fg-faint)">(' + cites + ')</span>' : '') + '</li>';
+          }).join("") + '</ul></div>';
+      }
+      detailsEl.innerHTML = html;
+    }
+    network.on("hoverNode", function(p){ showDetails(p.node); });
+    network.on("click", function(p){ if (p.nodes.length) showDetails(p.nodes[0]); });
+    network.on("blurNode", function(){ detailsEl.textContent = "Hover or click a node for details. Drag to pan, scroll to zoom."; });
   });
 }
 
@@ -690,10 +851,12 @@ function renderModel(main, model){
   main.innerHTML =
     '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← Usefulness Boundary Hub</a></div>' +
     '<div class="model-header"><h1>'+esc(model.name)+'</h1><span class="chip">'+esc(ARCHITECTURES[model.architectureId].name)+'</span></div>' +
+    '<p class="graph-link"><a data-role="graph-link">View lineage &amp; evidence graph →</a></p>' +
     '<div class="tabs" role="tablist" data-role="tabs"></div>' +
     '<div class="panel" data-role="panel"></div>';
 
   main.querySelector('[data-role="back"]').addEventListener("click", function(){ location.hash = ""; });
+  main.querySelector('[data-role="graph-link"]').addEventListener("click", function(){ location.hash = "graph/" + model.id; });
 
   var tabsEl = main.querySelector('[data-role="tabs"]');
   var panelEl = main.querySelector('[data-role="panel"]');
@@ -721,10 +884,24 @@ function renderModel(main, model){
   selectTab(current);
 }
 
+function renderFamilyGraphView(main, model){
+  main.innerHTML =
+    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← '+esc(model.name)+'</a></div>' +
+    '<div class="model-header"><h1>Lineage &amp; evidence graph</h1><span class="chip">'+esc(model.name)+'</span></div>' +
+    '<p class="prose" style="margin-bottom:16px">Known variants branching from this checkpoint, which of its failure modes each one fixes, and which failure modes are still open. Hover a node or line for details.</p>' +
+    '<div data-role="graph"></div>';
+  main.querySelector('[data-role="back"]').addEventListener("click", function(){ location.hash = model.id; });
+  mountFamilyGraph(main.querySelector('[data-role="graph"]'), model);
+}
+
 function route(){
   teardownSubs();
   var main = document.getElementById("main");
   var hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (hash.indexOf("graph/") === 0){
+    var gModel = modelById(hash.slice(6));
+    if (gModel){ renderFamilyGraphView(main, gModel); return; }
+  }
   var model = hash ? modelById(hash) : null;
   if (model) renderModel(main, model);
   else renderHub(main);

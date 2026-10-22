@@ -48,3 +48,15 @@ A bibliographic record (authors, title, venue, DOI/URL) for a cited source, e.g.
 
 ### Contributor
 A person submitting a Community Annotation (of any subtype). Identified by a self-reported name/email typed at submission time — not an authenticated account, not verified. Attribution only, not access control.
+
+### Known Variant
+A lightweight, curator-authored node for a checkpoint known from the literature (e.g. MACE-MP-0b2) that hasn't been fully catalogued as a Model — just a name and a short note on what changed, no Lenses. Exists so Lineage and Fixes (below) can reference real checkpoints without waiting for someone to fully catalogue every one as a Model Page first. Can later be promoted to a full Model Page; creating one is curator-only, like naming a Known Failure Mode or creating a Model Page.
+
+### Lineage
+A directional relationship between two checkpoint-like entities (a Model or a Known Variant) meaning "is a later/derived checkpoint of." Curator-authored. Distinct from Architecture: Architecture is a flat shared tag (MACE-MP-0 and MACE-OFF23 are both `mace`), Lineage is an ordered succession (MACE-MP-0 → MACE-MP-0b → MACE-MP-0b2 is a sequence, not a group).
+
+### Fixes
+A relationship from a Known Variant to a Known Failure Mode, meaning this variant resolves or improves that specific phenomenon. Formalizes what the literature today narrates as prose (`status_in_later_variants`, `mitigations`). Curator-authored.
+
+### Graph View
+A derived `{nodes, edges}` structure assembled on demand from the existing typed entities (Model, Known Failure Mode, Evidence, Reference, Mechanistic Finding, Bayesian Annotation, Known Variant, Lineage, Fixes) — not a separate master store, a query/rendering layer over them (see ADR-0004). Powers the family-tree visualization and, later, a chat-based recommender tool. Cross-Model evidence connectivity falls out of it for free: a Reference cited by Evidence under two different Models' Known Failure Modes appears in the Graph View as one Reference node connected to both Models, with no dedicated field for it.
