@@ -277,6 +277,7 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 
 <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
 <script src="import-record.js"></script>
+<script src="directory-extractor.js"></script>
 <script src="run-store.js"></script>
 <script src="uploads.js"></script>
 <script src="workspace-shell.js"></script>
@@ -1360,7 +1361,7 @@ function route(){
   try { hash=decodeURIComponent(location.hash.replace(/^#/, "")); } catch(error){hash="";}
   if(workspaceShell.select(hash))return;
   if(hash==="uploads"){
-    main.innerHTML='<h1>Calculation uploads</h1><p class="prose">Collect metadata with the standalone extractor, then import the JSON here. No Hub download is required for extraction.</p><div data-role="uploads"></div>';
+    main.innerHTML='<h1>Calculation uploads</h1><p class="prose">Choose a calculation folder for browser extraction, or import JSON from the standalone Python extractor. Review the available information before saving.</p><div data-role="uploads"></div>';
     mountUploads(main.querySelector('[data-role="uploads"]'));return;
   }
   if (hash.indexOf("graph/") === 0){

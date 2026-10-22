@@ -1,0 +1,12 @@
+{
+  "model_id": "example-hydrogen-model",
+  "framework": "MACE",
+  "epochs": 10,
+  "batch_size": 4,
+  "simulation": {
+    "type": "single_point"
+  },
+  "provenance": {
+    "fixture": "Synthetic folder-reader demonstration, not a real MLIP calculation"
+  }
+}

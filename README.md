@@ -44,6 +44,45 @@ Shared publication still needs the connected storage described below.
 
 See [the combined-workspace design](docs/adr/0009-combined-hub-workspaces.md).
 
+## Choose how to extract information
+
+| Option | Installation | Workflow |
+| --- | --- | --- |
+| Browser folder extraction | None | In Calculation uploads or Contribute, choose a calculation folder. Supported saved files are read locally and a metadata preview is generated automatically. |
+| Import existing JSON | None for the Hub | Select a previously generated `mliphub-metadata.json`. All fields and provenance are retained. |
+| Python extractor | Standalone wheel today; PyPI planned | Run one line in the simulation/notebook environment to inspect live ASE and calculator objects, or use supported ASE file readers. |
+
+For the no-install option, open **Calculation uploads → Choose calculation folder
+— no installation**. After extraction, review the metadata, then choose
+**Download metadata JSON**, **Save in this browser**, or **Upload to Hub** when
+shared storage is connected. Selecting a folder does not publish anything. Source
+files are not uploaded; the optional upload contains the generated metadata,
+relative-file inventory and checksums. You may also select a folder directly in
+**Contribute** to populate a draft.
+
+The browser reader currently supports JSON configuration; whitelisted scalar
+settings in YAML/TOML/INI/CFG/text/log files; simple literal assignments in saved
+Jupyter code cells; and species/Cartesian positions from XYZ/extXYZ files (first
+and last saved frames). It reads explicit extXYZ lattice and periodicity, without
+assuming missing periodicity or coordinate units. This is a saved-file reader:
+it does not execute a notebook, inspect its running kernel, load model weights,
+run inference, or recover hardware/timing that was never saved.
+
+Missing facts stay unknown and conflicting declarations stay file-specific. When
+multiple structure files exist, no single final system is guessed. A folder
+containing one valid extractor record imports that original JSON unchanged;
+multiple existing records require selecting one directly. The Python workflow
+remains useful for live model details and binary trajectory formats supported by
+ASE; arbitrary model checkpoints do not guarantee recoverable training metadata.
+
+Folder limits are 1,000 files, 10 MiB per supported file, 32 MiB total read data,
+and 5,000 atoms per XYZ frame. Unsupported/oversized files are inventoried with
+skip reasons. Generated records must fit the existing 10 MiB upload contract.
+Use HTTPS or localhost. Try the synthetic [example folder](examples/browser-folder)
+to demonstrate the workflow; it contains no real MLIP results.
+
+See [browser folder extraction details](docs/adr/0010-browser-folder-extraction.md).
+
 ## Download and install the extractor today
 
 End users only need the extractor, not a checkout of the Hub. The current

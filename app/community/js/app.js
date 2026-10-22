@@ -1356,6 +1356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.MLIPContribution.collect(dom, importedContribution);
   }
   const extractorFile = document.getElementById("contributionExtractorFile");
+  const extractorFolder = document.getElementById("contributionExtractorFolder");
   const importStatus = document.getElementById("contributionImportStatus");
   let importGeneration = 0;
   extractorFile.addEventListener("change", async () => {
@@ -1367,21 +1368,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const raw = await file.text();
       const record = window.MLIPImport.parseRecord(raw);
       if (token !== importGeneration) return;
-      const fields = window.MLIPContribution.prefill(record);
-      resetContribution();
-      Object.entries(fields).forEach(([id, field]) => {
-        const input = dom[id];
-        if (input.tagName === "SELECT" && ![...input.options].some((option) => option.value === field.value)) {
-          const option = document.createElement("option"); option.value = field.value; option.textContent = field.value;
-          input.appendChild(option);
-        }
-        input.value = field.value;
-      });
-      importedContribution = {raw, fields};
-      importStatus.textContent = `Imported ${Object.keys(fields).length} matching fields. All original metadata and provenance will be preserved in your draft. Unknown facts remain blank.`;
-      updateLivePreview();
+      applyExtractorRecord(raw, record, "Imported extractor JSON.");
     } catch (error) {
       if (token === importGeneration) importStatus.textContent = "Import failed: " + error.message;
+    }
+  });
+
+  function applyExtractorRecord(raw, record, message) {
+    const fields = window.MLIPContribution.prefill(record);
+    resetContribution();
+    Object.entries(fields).forEach(([id, field]) => {
+      const input = dom[id];
+      if (input.tagName === "SELECT" && ![...input.options].some((option) => option.value === field.value)) {
+        const option = document.createElement("option"); option.value = field.value; option.textContent = field.value;
+        input.appendChild(option);
+      }
+      input.value = field.value;
+    });
+    importedContribution = {raw, fields};
+    importStatus.textContent = message + ` Filled ${Object.keys(fields).length} matching fields. All original metadata and provenance will be preserved in your draft. Unknown facts remain blank.`;
+    updateLivePreview();
+  }
+  extractorFolder.addEventListener("change", async () => {
+    const token = ++importGeneration;
+    if (!extractorFolder.files.length) return;
+    try {
+      const result = await window.MLIPDirectory.extract(extractorFolder.files, {
+        onProgress: (text) => { if (token === importGeneration) importStatus.textContent = text; },
+        cancelled: () => token !== importGeneration
+      });
+      if (token === importGeneration) applyExtractorRecord(result.recordJson, result.record, result.message);
+    } catch (error) {
+      if (token === importGeneration) importStatus.textContent = "Extraction failed: " + error.message;
     }
   });
 
@@ -1440,6 +1458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dom.resetFormBtn.addEventListener("click", () => {
       importGeneration++;
       extractorFile.value = "";
+      extractorFolder.value = "";
       importStatus.textContent = "";
       resetContribution();
     });

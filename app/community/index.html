@@ -715,6 +715,9 @@
             <p>Have a calculation record? Import it to populate matching fields automatically. Add optional scientific context below. Blank fields mean unknown.</p>
             <label for="contributionExtractorFile">Choose extractor JSON for this draft</label>
             <input id="contributionExtractorFile" type="file" accept=".json,application/json">
+            <label for="contributionExtractorFolder">Or choose a calculation folder — no installation</label>
+            <input id="contributionExtractorFolder" type="file" webkitdirectory directory multiple>
+            <p>Read supported saved files locally in your browser. Selecting a folder does not upload its contents. Live objects and binary formats need the Python extractor.</p>
             <p id="contributionImportStatus" role="status" aria-live="polite"></p>
             <p><a href="../index.html#uploads" target="_top">Save or upload an original calculation record →</a></p>
           </div>
@@ -1209,6 +1212,7 @@
 
   <script src="data/catalog.js?v=2.0.3"></script>
   <script src="../import-record.js"></script>
+  <script src="../directory-extractor.js"></script>
   <script src="js/contribution-form.js"></script>
   <script src="js/app.js?v=2.0.3"></script>
 

@@ -1,6 +1,7 @@
 /* Unit-test upload events with a minimal DOM contract. This is not browser QA. */
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const Import=require('../app/import-record.js');
+const Directory=require('../app/directory-extractor.js');
 const raw=fs.readFileSync(path.join(__dirname,'fixtures/extractor-record.json'),'utf8');
 class Element {
   constructor(tag){this.tag=tag;this.children=[];this.listeners={};this.attrs={};this._text='';this.value='';this.disabled=false;const names=new Set();this.classList={add:k=>names.add(k),toggle:(k,on)=>on?names.add(k):names.delete(k)};}
@@ -18,12 +19,14 @@ async function tick(){await new Promise(r=>setImmediate(r));}
 function setup({connected=false,fail=false}={}){
   const saved=[],shared=[],container=new Element('section');
   const store={async listLocal(){return [];},async saveLocal(x){saved.push(x);},async saveShared(db,x){assert.ok(db);if(fail)throw Error('storage failed');shared.push(x);},subscribeShared(){return ()=>{};}};
-  const window={MLIPImport:Import,MLIPRunStore:store};
+  const window={MLIPImport:Import,MLIPRunStore:store,MLIPDirectory:Directory};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../app/uploads.js'),'utf8'),{window,document:{createElement:tag=>new Element(tag)},Blob,URL,setTimeout});
   const dispose=window.MLIPUploads.mount(container,{db:Promise.resolve(connected?{}:null),catalogue:Promise.resolve([{id:'mace-mp-0',name:'MACE-MP-0',architectureId:'mace'}])});
   const picker=find(container,x=>x.tag==='input');
   async function choose(text){picker.files=[{name:'metadata.json',size:Buffer.byteLength(text),text:async()=>text}];await picker.emit('change');await tick();}
-  return {container,saved,shared,choose,dispose};
+  const folder=find(container,x=>x.tag==='input'&&Object.hasOwn(x.attrs,'webkitdirectory'));
+  async function chooseFolder(files){folder.files=files;await folder.emit('change');await tick();}
+  return {container,saved,shared,choose,chooseFolder,dispose};
 }
 test('upload UI imports fields and persists the entire file without typing',async()=>{
   const app=setup();await tick();await app.choose(raw);
@@ -55,4 +58,20 @@ test('shared upload uses the same original metadata as the preview',async()=>{
 test('unmount prevents a delayed file read from changing UI state',async()=>{
   const app=setup();await tick();app.dispose();await app.choose(raw);
   assert.equal(all(app.container,x=>x.tag==='select').length,0);assert.equal(app.saved.length,0);
+});
+test('folder selection previews metadata without publishing or installing anything',async()=>{
+  const app=setup({connected:true});await tick();
+  const bytes=Buffer.from('{"model_id":"mace-mp-0","epochs":10}');
+  await app.chooseFolder([{name:'config.json',webkitRelativePath:'run/config.json',size:bytes.length,text:async()=>bytes.toString(),arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}]);
+  assert.match(app.container.textContent,/Extracted metadata/);assert.equal(app.shared.length,0);assert.equal(app.saved.length,0);
+  assert.equal(find(app.container,x=>x.tag==='select').value,'mace-mp-0');
+  await find(app.container,x=>x.tag==='button'&&x.textContent==='Save in this browser').emit('click');await tick();
+  assert.equal(app.saved.length,1);assert.equal(app.shared.length,0);
+  assert.equal(JSON.parse(app.saved[0].recordJson).provenance.mode.value,'browser_directory_extraction');app.dispose();
+});
+test('an unsupported directory displays its limitation without enabling submission',async()=>{
+  const app=setup();await tick();
+  await app.chooseFolder([{name:'model.pt',webkitRelativePath:'run/model.pt',size:20,text:async()=>{throw Error('Do not read');}}]);
+  assert.match(app.container.textContent,/No supported metadata/);assert.equal(all(app.container,x=>x.tag==='select').length,0);
+  assert.equal(app.saved.length,0);assert.equal(app.shared.length,0);app.dispose();
 });

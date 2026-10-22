@@ -16,7 +16,7 @@ Open http://localhost:8000/ and use the shared tabs:
   shortlist and comparisons. Existing curated models link back to their Model Pages.
 - **UQ benchmarks:** inherited ammonia evaluation tables, plots and epoch filters.
 - **Knowledge graph:** MACE model, data and task relationships.
-- **Contribute:** optional extractor JSON import, six-pillar draft, safe live preview,
+- **Contribute:** no-install browser folder extraction or existing extractor JSON import, six-pillar draft, safe live preview,
   downloadable JSON and clipboard copy. Empty fields remain unknown. Draft export
   preserves the original extraction and its provenance; it does not publish a model.
 

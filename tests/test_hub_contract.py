@@ -1,5 +1,7 @@
 """The bundled Python exporter and the browser importer share an actual JSON fixture."""
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -43,3 +45,23 @@ def test_unknown_identity_remains_explicitly_unavailable():
     record = new_record()
     assert record.model["id"].status == "unavailable"
     assert record.model["architecture_id"].status == "unavailable"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node is needed for browser-to-Python contract verification")
+def test_browser_directory_record_is_valid_python_record():
+    script = r'''
+const fs=require('node:fs'),path=require('node:path'),{webcrypto}=require('node:crypto');
+const Directory=require('./app/directory-extractor.js');
+const folder='examples/browser-folder';
+const files=fs.readdirSync(folder).map(name=>{
+  const bytes=fs.readFileSync(path.join(folder,name));
+  return {name,webkitRelativePath:'browser-folder/'+name,size:bytes.length,
+    text:async()=>bytes.toString(),arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};
+});
+Directory.extract(files,{crypto:webcrypto}).then(result=>process.stdout.write(result.recordJson)).catch(error=>{console.error(error);process.exitCode=1;});
+'''
+    result = subprocess.run(["node", "-e", script], cwd=ROOT, check=True, capture_output=True, text=True)
+    record = Record.model_validate_json(result.stdout)
+    assert record.provenance["mode"].value == "browser_directory_extraction"
+    assert record.system["final.number_of_atoms"].value == 2
+    assert record.results["status"].status == "unavailable"

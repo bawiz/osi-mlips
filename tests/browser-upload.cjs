@@ -82,6 +82,17 @@ function file(content=raw,name='metadata.json'){return {name,mimeType:'applicati
   await workspace.locator('#knowledgeView.active').waitFor();
   await page.getByRole('link',{name:'Calculation uploads',exact:true}).click();
   await page.getByLabel('Choose extractor JSON').waitFor();
+  await page.getByLabel('Choose calculation folder — no installation',{exact:true}).setInputFiles(path.join(root,'examples/browser-folder'));
+  await expectText(page,'.upload-status','Extracted metadata');
+  const folderDownload=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Download metadata JSON',exact:true}).click();
+  const folderRecord=JSON.parse(fs.readFileSync(await (await folderDownload).path(),'utf8'));
+  assert.equal(folderRecord.provenance.mode.value,'browser_directory_extraction');
+  assert.equal(folderRecord.system['final.number_of_atoms'].value,2);
+  await page.getByRole('link',{name:'Contribute',exact:true}).click();
+  await workspace.locator('#contributionExtractorFolder').setInputFiles(path.join(root,'examples/browser-folder'));
+  await workspace.locator('#contributionImportStatus').filter({hasText:'Extracted metadata'}).waitFor();
+  assert.equal(await workspace.locator('#cfFormula').inputValue(),'H2');
   await page.getByRole('link',{name:'Model profiles',exact:true}).click();
   await page.locator('.model-card').first().waitFor();
   assert.deepEqual(errors,[]);
