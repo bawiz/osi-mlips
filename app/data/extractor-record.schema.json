@@ -1,0 +1,179 @@
+{
+  "$defs": {
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "role",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "MetadataValue": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "status": {
+          "enum": [
+            "extracted",
+            "user_provided",
+            "inferred",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "status",
+        "source"
+      ],
+      "title": "MetadataValue",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "model": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Model",
+      "type": "object"
+    },
+    "training": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Training",
+      "type": "object"
+    },
+    "system": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "System",
+      "type": "object"
+    },
+    "simulation": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Simulation",
+      "type": "object"
+    },
+    "environment": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Environment",
+      "type": "object"
+    },
+    "results": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Results",
+      "type": "object"
+    },
+    "reliability": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Reliability",
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MetadataValue"
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "title": "Record",
+  "type": "object"
+}

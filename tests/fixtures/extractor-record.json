@@ -1,0 +1,435 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "163cc77f-78f7-488d-af23-12b98bdc323f",
+  "created_at": "2026-10-22T14:27:15.650376+00:00",
+  "model": {
+    "id": {
+      "value": "mace-mp-0",
+      "status": "user_provided",
+      "source": "extract(model_id=...)",
+      "unit": null,
+      "reason": null
+    },
+    "name": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "architecture_id": {
+      "value": "mace",
+      "status": "inferred",
+      "source": "calculator class module",
+      "unit": null,
+      "reason": null
+    },
+    "implementation_class": {
+      "value": "test_adapters.Model",
+      "status": "extracted",
+      "source": "type(calculator.models[0])",
+      "unit": null,
+      "reason": null
+    },
+    "framework": {
+      "value": "MACE",
+      "status": "inferred",
+      "source": "calculator class module",
+      "unit": null,
+      "reason": null
+    },
+    "architecture": {
+      "value": "test_adapters.Model",
+      "status": "extracted",
+      "source": "type(calculator.models[0])",
+      "unit": null,
+      "reason": null
+    },
+    "supported_atomic_numbers": {
+      "value": [
+        1,
+        8
+      ],
+      "status": "extracted",
+      "source": "calculator.z_table.zs",
+      "unit": null,
+      "reason": null
+    },
+    "cutoff_radius": {
+      "value": 5.0,
+      "status": "extracted",
+      "source": "calculator.r_max * calculator.length_units_to_A (default 1)",
+      "unit": "angstrom",
+      "reason": null
+    },
+    "parameter_count": {
+      "value": 84,
+      "status": "extracted",
+      "source": "sum(calculator.models[0].parameters().numel())",
+      "unit": null,
+      "reason": null
+    },
+    "calculator_class": {
+      "value": "mace.calculators.mace.MACECalculator",
+      "status": "extracted",
+      "source": "type(calculator)",
+      "unit": null,
+      "reason": null
+    },
+    "implemented_properties": {
+      "value": [
+        "energy",
+        "forces"
+      ],
+      "status": "extracted",
+      "source": "calculator.implemented_properties",
+      "unit": null,
+      "reason": null
+    },
+    "member_count": {
+      "value": 1,
+      "status": "extracted",
+      "source": "len(calculator.models)",
+      "unit": null,
+      "reason": null
+    },
+    "atomic_numbers": {
+      "value": [
+        1,
+        8
+      ],
+      "status": "extracted",
+      "source": "calculator.models[0].atomic_numbers",
+      "unit": null,
+      "reason": null
+    },
+    "num_interactions": {
+      "value": 2,
+      "status": "extracted",
+      "source": "calculator.models[0].num_interactions",
+      "unit": null,
+      "reason": null
+    },
+    "calculator.r_max": {
+      "value": 5.0,
+      "status": "extracted",
+      "source": "calculator.r_max",
+      "unit": null,
+      "reason": null
+    },
+    "calculator.models[0].atomic_numbers": {
+      "value": [
+        1,
+        8
+      ],
+      "status": "extracted",
+      "source": "calculator.models[0].atomic_numbers",
+      "unit": null,
+      "reason": null
+    },
+    "calculator.models[0].num_interactions": {
+      "value": 2,
+      "status": "extracted",
+      "source": "calculator.models[0].num_interactions",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "training": {
+    "datasets": {
+      "value": [
+        "synthetic-test-dataset"
+      ],
+      "status": "extracted",
+      "source": "calculator.models[0].training_metadata.datasets",
+      "unit": null,
+      "reason": null
+    },
+    "hyperparameters": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Not preserved in accessible model metadata; supply training provenance explicitly"
+    },
+    "reference_method": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Not preserved in accessible model metadata; supply training provenance explicitly"
+    },
+    "epochs": {
+      "value": 10,
+      "status": "extracted",
+      "source": "calculator.models[0].training_metadata.epochs",
+      "unit": null,
+      "reason": null
+    },
+    "optimizer": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Not preserved in accessible model metadata; supply training provenance explicitly"
+    },
+    "training_metadata": {
+      "value": {
+        "datasets": [
+          "synthetic-test-dataset"
+        ],
+        "epochs": 10
+      },
+      "status": "extracted",
+      "source": "calculator.models[0].training_metadata",
+      "unit": null,
+      "reason": null
+    },
+    "calculator.models[0].training_metadata.datasets": {
+      "value": [
+        "synthetic-test-dataset"
+      ],
+      "status": "extracted",
+      "source": "calculator.models[0].training_metadata.datasets",
+      "unit": null,
+      "reason": null
+    },
+    "calculator.models[0].training_metadata.epochs": {
+      "value": 10,
+      "status": "extracted",
+      "source": "calculator.models[0].training_metadata.epochs",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "system": {
+    "final.number_of_atoms": {
+      "value": 2,
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": null,
+      "reason": null
+    },
+    "final.atomic_numbers": {
+      "value": [
+        1,
+        1
+      ],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": null,
+      "reason": null
+    },
+    "final.positions": {
+      "value": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.74
+        ]
+      ],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": "angstrom",
+      "reason": null
+    },
+    "final.cell": {
+      "value": [
+        [
+          10.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          10.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          10.0
+        ]
+      ],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": "angstrom",
+      "reason": null
+    },
+    "final.pbc": {
+      "value": [
+        false,
+        false,
+        false
+      ],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": null,
+      "reason": null
+    },
+    "final.masses": {
+      "value": [
+        1.0,
+        1.0
+      ],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": "atomic_mass_unit",
+      "reason": null
+    },
+    "final.constraints": {
+      "value": [],
+      "status": "extracted",
+      "source": "ASE Atoms (final)",
+      "unit": null,
+      "reason": null
+    },
+    "final.info.fixture": {
+      "value": "Synthetic integration fixture; not a real MLIP calculation",
+      "status": "extracted",
+      "source": "atoms.info.fixture",
+      "unit": null,
+      "reason": null
+    },
+    "final.info.extra_information": {
+      "value": {
+        "preserve": [
+          "all",
+          "fields"
+        ]
+      },
+      "status": "extracted",
+      "source": "atoms.info.extra_information",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "simulation": {
+    "calculator_parameters": {
+      "value": {
+        "cutoff": 5.0
+      },
+      "status": "extracted",
+      "source": "calculator.parameters",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "environment": {
+    "model_device": {
+      "value": "cpu",
+      "status": "extracted",
+      "source": "calculator.models[0].parameters()",
+      "unit": null,
+      "reason": null
+    },
+    "model_dtype": {
+      "value": "float64",
+      "status": "extracted",
+      "source": "calculator.models[0].parameters()",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "results": {
+    "status": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No execution was observed"
+    },
+    "energy": {
+      "value": 0.5476,
+      "status": "extracted",
+      "source": "calculator.results.energy; valid for final structure",
+      "unit": "eV",
+      "reason": null
+    },
+    "forces": {
+      "value": [
+        [
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        [
+          -0.0,
+          -0.0,
+          -1.48
+        ]
+      ],
+      "status": "extracted",
+      "source": "calculator.results.forces; valid for final structure",
+      "unit": "eV/angstrom",
+      "reason": null
+    },
+    "scope_wall_time": {
+      "value": null,
+      "status": "unavailable",
+      "source": "mliphub.extract",
+      "unit": null,
+      "reason": "Post-calculation extraction cannot reconstruct execution timing"
+    },
+    "calculator_wall_time": {
+      "value": null,
+      "status": "unavailable",
+      "source": "mliphub.extract",
+      "unit": null,
+      "reason": "Post-calculation extraction cannot reconstruct execution timing"
+    }
+  },
+  "reliability": {
+    "accuracy": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    },
+    "uncertainty": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    }
+  },
+  "provenance": {
+    "collector": {
+      "value": "mliphub 0.1.0",
+      "status": "extracted",
+      "source": "mliphub",
+      "unit": null,
+      "reason": null
+    },
+    "adapter": {
+      "value": "mace",
+      "status": "extracted",
+      "source": "mliphub adapter registry",
+      "unit": null,
+      "reason": null
+    },
+    "mode": {
+      "value": "one_call_extraction",
+      "status": "extracted",
+      "source": "mliphub.extract",
+      "unit": null,
+      "reason": null
+    },
+    "target_selection": {
+      "value": "explicit target argument",
+      "status": "extracted",
+      "source": "mliphub.extract",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "artifacts": [],
+  "warnings": []
+}

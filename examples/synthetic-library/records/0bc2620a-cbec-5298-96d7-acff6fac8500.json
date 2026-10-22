@@ -1,0 +1,275 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "0bc2620a-cbec-5298-96d7-acff6fac8500",
+  "created_at": "2026-01-06T07:00:00+00:00",
+  "model": {
+    "id": {
+      "value": "demo-molecule",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "name": {
+      "value": "Demo Molecular Equivariant",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "architecture_id": {
+      "value": "nequip",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "implementation_class": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "framework": {
+      "value": "NEQUIP",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "architecture": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "supported_atomic_numbers": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "cutoff_radius": {
+      "value": 5.0,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "angstrom",
+      "reason": null
+    },
+    "parameter_count": {
+      "value": 875000,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "supported_elements": {
+      "value": [
+        "C",
+        "H",
+        "N",
+        "O"
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "training": {
+    "datasets": {
+      "value": [
+        {
+          "id": "demo-training-molecule",
+          "synthetic": true,
+          "configurations": 1800
+        }
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "hyperparameters": {
+      "value": {
+        "learning_rate": 0.001,
+        "batch_size": 8,
+        "seed": 3
+      },
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "reference_method": {
+      "value": {
+        "code": "DEMO-REFERENCE",
+        "functional": "PBE",
+        "synthetic": true
+      },
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "epochs": {
+      "value": 160,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "optimizer": {
+      "value": "Adam",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "system": {
+    "final.elements": {
+      "value": [
+        "H",
+        "O"
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "final.number_of_atoms": {
+      "value": 256,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "class": {
+      "value": "molecule",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "final.pbc": {
+      "value": [
+        false,
+        false,
+        false
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "simulation": {
+    "type": {
+      "value": "training",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "environment": {
+    "model_device": {
+      "value": "cuda",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "hardware_id": {
+      "value": "demo-gpu-01",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "model_dtype": {
+      "value": "float64",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "results": {
+    "status": {
+      "value": "synthetic_example",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "scope_wall_time": {
+      "value": 5.44,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "s",
+      "reason": null
+    }
+  },
+  "reliability": {
+    "accuracy": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    },
+    "uncertainty": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    }
+  },
+  "provenance": {
+    "collector": {
+      "value": "ubh synthetic library generator v1",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "synthetic": {
+      "value": true,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "evidence_status": {
+      "value": "synthetic_demo",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "record_kind": {
+      "value": "training",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "disclaimer": {
+      "value": "Fictional checkpoint, systems and numbers. Not evidence about any real MLIP or architecture.",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "artifacts": [],
+  "warnings": [
+    "Synthetic demonstration fixture; no model was trained or evaluated"
+  ]
+}
