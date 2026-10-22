@@ -43,6 +43,13 @@ a{color:var(--accent)}
   padding-right:max(16px, env(safe-area-inset-right,0px));
   max-width:1100px;margin:0 auto;
 }
+.app-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:16px 12px;border-bottom:1px solid var(--border);margin-bottom:6px;flex-wrap:wrap}
+.app-brand{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--fg);text-decoration:none;cursor:pointer}
+.app-brand:hover{color:var(--accent)}
+.app-nav-links{display:flex;gap:4px}
+.app-nav-link{font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--fg-muted);text-decoration:none;cursor:pointer;padding:8px 12px;border-bottom:2px solid transparent;white-space:nowrap}
+.app-nav-link:hover{color:var(--fg)}
+.app-nav-link[aria-current="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .crumb{color:var(--fg-muted);font-size:13px;display:flex;align-items:baseline;gap:8px}
 .crumb a{text-decoration:none;cursor:pointer}
 .crumb a:hover{text-decoration:underline}
@@ -232,10 +239,26 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 .rec-stop{font-family:var(--font-sans);font-size:12px;color:var(--fg-muted);background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer}
 .rec-note{font-size:11px;color:var(--fg-faint);margin-top:6px}
 .fm-card.rec-highlight{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.explore{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:18px;margin:10px 0 34px}
+.explore h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-faint);margin-bottom:6px}
+.explore-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.explore-filters select{min-width:150px}
+.explore-count{font-size:13px;color:var(--fg-muted);margin-bottom:12px}
+.explore-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.usage-card{background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+.usage-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.usage-model{font-family:var(--font-mono);font-weight:600;font-size:13px}
+.usage-status{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;border-radius:999px;border:1px solid var(--border);margin-left:auto}
+.usage-status-good{color:var(--good);border-color:var(--good)}
+.usage-status-warning{color:var(--warning);border-color:var(--warning)}
+.usage-status-critical{color:var(--critical);border-color:var(--critical)}
+.usage-system,.usage-sim{font-size:12px;color:var(--fg-muted)}
+.usage-metrics,.usage-reliability{font-size:11px;color:var(--fg-faint)}
 [hidden]{display:none!important}
 </style>
 
 <div class="page">
+  <nav class="app-nav" id="appnav"></nav>
   <main id="main"></main>
   <footer>
     <div class="page" style="padding-inline:0">
@@ -765,6 +788,121 @@ function mountFamilyGraph(container, model, focusNodeId){
   });
 }
 
+/* ---- Explore: Usage Records (see CONTEXT.md Explore / Usage Record) ---- */
+function fv(container, key){
+  var node = container && container[key];
+  return (node && typeof node === "object" && "value" in node) ? node.value : null;
+}
+
+function buildUsageRecords(raw){
+  if (!Array.isArray(raw)) return [];
+  return raw.map(function(r){
+    return {
+      runId: r.run_id,
+      modelName: fv(r.model, "name") || fv(r.model, "id") || "Unknown model",
+      architectureId: fv(r.model, "architecture_id"),
+      elements: fv(r.system, "final.elements") || [],
+      numAtoms: fv(r.system, "final.number_of_atoms"),
+      systemClass: fv(r.system, "class"),
+      simType: fv(r.simulation, "type"),
+      temperatureK: fv(r.simulation, "temperature_K"),
+      status: fv(r.results, "status"),
+      wallTime: fv(r.results, "scope_wall_time"),
+      energy: fv(r.results, "energy"),
+      refComp: fv(r.reliability, "reference_comparison")
+    };
+  });
+}
+
+var usageLibraryPromise = null;
+function fetchUsageLibrary(){
+  if (usageLibraryPromise) return usageLibraryPromise;
+  usageLibraryPromise = fetch("data/synthetic_mlip_demo_library.json")
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(buildUsageRecords)
+    .catch(function(){ return []; });
+  return usageLibraryPromise;
+}
+
+function usageStatusClass(status){
+  if (status === "completed") return "good";
+  if (status === "completed_with_warnings") return "warning";
+  return "critical";
+}
+
+function renderUsageCard(r){
+  var rc = r.refComp;
+  return '<div class="usage-card">' +
+    '<div class="usage-head">' +
+      '<span class="usage-model">'+esc(r.modelName)+'</span>' +
+      (r.architectureId ? '<span class="chip">'+esc(r.architectureId)+'</span>' : '') +
+      (r.status ? '<span class="usage-status usage-status-'+usageStatusClass(r.status)+'">'+esc(r.status.replace(/_/g," "))+'</span>' : '') +
+    '</div>' +
+    '<div class="usage-system">'+esc((r.elements||[]).join(" "))+
+      (r.numAtoms!=null?' · '+r.numAtoms+' atoms':'')+
+      (r.systemClass?' · <span class="chip">'+esc(r.systemClass)+'</span>':'')+
+    '</div>' +
+    '<div class="usage-sim">'+esc((r.simType||"").replace(/_/g," "))+
+      (r.temperatureK!=null?' at '+r.temperatureK+' K':'')+
+      (r.wallTime!=null?' · '+Number(r.wallTime).toFixed(1)+'s wall time':'')+
+    '</div>' +
+    (r.energy!=null ? '<div class="usage-metrics mono">Energy '+Number(r.energy).toFixed(3)+' eV</div>' : '') +
+    (rc ? '<div class="usage-reliability mono">vs '+esc(rc.reference_id||"reference")+': force MAE '+Number(rc.force_mae).toFixed(3)+' '+esc(rc.force_unit||"")+
+      ' · energy MAE/atom '+Number(rc.energy_mae_per_atom).toFixed(3)+' '+esc(rc.energy_unit||"")+'</div>' : '') +
+  '</div>';
+}
+
+function uniqueSorted(list){
+  var seen = {}, out = [];
+  list.forEach(function(v){ if (v!=null && !seen[v]){ seen[v]=true; out.push(v); } });
+  return out.sort();
+}
+
+function mountExplore(container){
+  container.className = "explore";
+  container.innerHTML = '<p class="annotation-empty">Loading…</p>';
+  fetchUsageLibrary().then(function(records){ renderExploreContent(container, records); });
+}
+
+function renderExploreContent(container, allRecords){
+  var models = uniqueSorted(allRecords.map(function(r){ return r.modelName; }));
+  var classes = uniqueSorted(allRecords.map(function(r){ return r.systemClass; }));
+  var simTypes = uniqueSorted(allRecords.map(function(r){ return r.simType; }));
+
+  function options(values){
+    return '<option value="">All</option>' + values.map(function(v){
+      return '<option value="'+esc(v)+'">'+esc(v.replace(/_/g," "))+'</option>';
+    }).join("");
+  }
+
+  container.innerHTML =
+    '<h2>Explore</h2>' +
+    '<p class="rec-intro">How other researchers have used these models in practice — browse reported runs across every model at once. Every record below is synthetic demonstration data: fictional checkpoints, systems and numbers, not evidence about any real MLIP or architecture.</p>' +
+    '<form class="explore-filters" data-role="filters">' +
+      '<div class="field"><label>Model</label><select name="model">'+options(models)+'</select></div>' +
+      '<div class="field"><label>System class</label><select name="systemClass">'+options(classes)+'</select></div>' +
+      '<div class="field"><label>Simulation type</label><select name="simType">'+options(simTypes)+'</select></div>' +
+    '</form>' +
+    '<p class="explore-count" data-role="count"></p>' +
+    '<div class="explore-grid" data-role="grid"></div>';
+
+  var formEl = container.querySelector('[data-role="filters"]');
+  var gridEl = container.querySelector('[data-role="grid"]');
+  var countEl = container.querySelector('[data-role="count"]');
+
+  function applyFilters(){
+    var model = formEl.model.value, cls = formEl.systemClass.value, sim = formEl.simType.value;
+    var filtered = allRecords.filter(function(r){
+      return (!model || r.modelName === model) && (!cls || r.systemClass === cls) && (!sim || r.simType === sim);
+    });
+    countEl.textContent = "Showing " + filtered.length + " of " + allRecords.length + " usage records";
+    gridEl.innerHTML = filtered.length ? filtered.map(renderUsageCard).join("") : '<p class="annotation-empty">No usage records match these filters.</p>';
+  }
+
+  formEl.addEventListener("change", applyFilters);
+  applyFilters();
+}
+
 /* ---- Recommender (ADR-0005: scoped exception to flat browsing; ADR-0006: curator-only grounding) ---- */
 var RECOMMENDER_RULES = [
   "You are the Recommender for the Usefulness Boundary Hub, a catalogue of MLIP (machine learning interatomic potential) checkpoints.",
@@ -1217,6 +1355,37 @@ function saveTabKey(modelId, key){
   try { localStorage.setItem("mlip-hub:tab:"+modelId, key); } catch(e){}
 }
 
+function renderAppNav(active){
+  var nav = document.getElementById("appnav");
+  if (!nav) return;
+  var sections = [
+    { key: "home", label: "Home", hash: "" },
+    { key: "recommender", label: "Recommender", hash: "recommender" },
+    { key: "explore", label: "Explore", hash: "explore" }
+  ];
+  nav.innerHTML =
+    '<a class="app-brand" data-role="brand">Usefulness Boundary Hub</a>' +
+    '<div class="app-nav-links">' +
+      sections.map(function(s){
+        return '<a class="app-nav-link" data-hash="'+s.hash+'" aria-current="'+(s.key===active?"true":"false")+'">'+s.label+'</a>';
+      }).join("") +
+    '</div>';
+  nav.querySelector('[data-role="brand"]').addEventListener("click", function(){ location.hash = ""; });
+  nav.querySelectorAll('[data-hash]').forEach(function(a){
+    a.addEventListener("click", function(){ location.hash = a.getAttribute("data-hash"); });
+  });
+}
+
+function renderRecommenderPage(main){
+  main.innerHTML = '<div data-role="recommender"></div>';
+  mountRecommender(main.querySelector('[data-role="recommender"]'));
+}
+
+function renderExplorePage(main){
+  main.innerHTML = '<div data-role="explore"></div>';
+  mountExplore(main.querySelector('[data-role="explore"]'));
+}
+
 function renderBoundaryMotif(){
   var good = [[36,34,4],[78,24,3],[128,46,4],[182,30,3],[238,42,4],[292,26,3]];
   var warn = [[332,56,4],[378,48,3],[420,66,4]];
@@ -1242,9 +1411,7 @@ function renderHub(main){
     '</div>' +
     '<div class="hub-visual">'+renderBoundaryMotif()+'</div>' +
     '<p class="hub-stats"><span class="mono">'+MODELS.length+'</span> model'+(MODELS.length===1?"":"s")+' catalogued · <span class="mono">3</span> lenses each · evidence and findings added live by the community</p>' +
-    '<div data-role="recommender"></div>' +
     '<div class="model-grid" data-role="grid"></div>';
-  mountRecommender(main.querySelector('[data-role="recommender"]'));
   var grid = main.querySelector('[data-role="grid"]');
   grid.innerHTML = MODELS.map(function(m){
     return '<div class="model-card" data-model="'+m.id+'">' +
@@ -1262,7 +1429,7 @@ function renderHub(main){
 function renderModel(main, model, opts){
   opts = opts || {};
   main.innerHTML =
-    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← Usefulness Boundary Hub</a></div>' +
+    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← Home</a></div>' +
     '<div class="model-header"><h1>'+esc(model.name)+'</h1><span class="chip">'+esc(ARCHITECTURES[model.architectureId].name)+'</span></div>' +
     '<p class="graph-link"><a data-role="graph-link">View lineage &amp; evidence graph →</a></p>' +
     '<div class="tabs" role="tablist" data-role="tabs"></div>' +
@@ -1311,6 +1478,17 @@ function route(){
   teardownSubs();
   var main = document.getElementById("main");
   var hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (hash === "recommender"){
+    renderAppNav("recommender");
+    renderRecommenderPage(main);
+    return;
+  }
+  if (hash === "explore"){
+    renderAppNav("explore");
+    renderExplorePage(main);
+    return;
+  }
+  renderAppNav("home");
   if (hash.indexOf("graph/") === 0){
     var gParts = hash.slice(6).split("/");
     var gModel = modelById(gParts[0]);
