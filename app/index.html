@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>MLIP Hub</title>
+<title>Usefulness Boundary Hub</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -47,9 +47,15 @@ a{color:var(--accent)}
 .crumb a{text-decoration:none;cursor:pointer}
 .crumb a:hover{text-decoration:underline}
 main{padding-block:28px 60px}
-.hub-intro{max-width:560px;margin-bottom:28px}
-.hub-intro h1{font-size:26px;margin-bottom:8px}
-.hub-intro p{color:var(--fg-muted);font-size:15px}
+.hub-intro{max-width:720px;margin-bottom:6px}
+.hub-intro h1{font-size:clamp(30px,5vw,46px);letter-spacing:-0.01em;margin:12px 0 14px}
+.hub-subtitle{font-size:19px;color:var(--fg);max-width:640px;margin-bottom:10px;text-wrap:balance}
+.hub-subtitle-secondary{font-size:14px;color:var(--fg-muted);max-width:600px}
+.hub-visual{max-width:720px;margin:24px 0 6px}
+.hub-visual svg{width:100%;height:auto;display:block}
+.boundary-label{fill:var(--fg-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:.05em}
+.hub-stats{font-size:13px;color:var(--fg-muted);margin:14px 0 30px}
+.hub-stats .mono{color:var(--fg)}
 .model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .model-card{
   background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;
@@ -640,10 +646,31 @@ function saveTabKey(modelId, key){
   try { localStorage.setItem("mlip-hub:tab:"+modelId, key); } catch(e){}
 }
 
+function renderBoundaryMotif(){
+  var good = [[36,34,4],[78,24,3],[128,46,4],[182,30,3],[238,42,4],[292,26,3]];
+  var warn = [[332,56,4],[378,48,3],[420,66,4]];
+  var bad = [[468,88,4],[512,72,3],[548,100,4],[584,80,3]];
+  function dots(list, color){
+    return list.map(function(d){ return '<circle cx="'+d[0]+'" cy="'+d[1]+'" r="'+d[2]+'" fill="'+color+'"></circle>'; }).join("");
+  }
+  return '<svg viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M0,66 C90,38 150,92 240,58 C330,24 390,86 460,62 C510,44 560,60 600,50" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="3 4"></path>' +
+    dots(good, "var(--good)") + dots(warn, "var(--warning)") + dots(bad, "var(--critical)") +
+    '<text class="boundary-label" x="4" y="114" text-anchor="start">CHARACTERIZED</text>' +
+    '<text class="boundary-label" x="596" y="114" text-anchor="end">UNCHARTED</text>' +
+    '</svg>';
+}
+
 function renderHub(main){
   main.innerHTML =
-    '<div class="hub-intro"><h1>MLIP Hub</h1>' +
-    '<p>What each machine-learning interatomic potential checkpoint is — and isn’t — good for, from the training-data facts to internal mechanism to uncertainty.</p></div>' +
+    '<div class="hub-intro">' +
+      '<span class="chip">Community-built reference</span>' +
+      '<h1>Usefulness Boundary Hub</h1>' +
+      '<p class="hub-subtitle">Let’s define the boundary of open scientific foundation models — so we can push it.</p>' +
+      '<p class="hub-subtitle-secondary">What each model checkpoint is — and isn’t — good for, from the training-data facts to internal mechanism to uncertainty.</p>' +
+    '</div>' +
+    '<div class="hub-visual">'+renderBoundaryMotif()+'</div>' +
+    '<p class="hub-stats"><span class="mono">'+MODELS.length+'</span> model'+(MODELS.length===1?"":"s")+' catalogued · <span class="mono">3</span> lenses each · evidence and findings added live by the community</p>' +
     '<div class="model-grid" data-role="grid"></div>';
   var grid = main.querySelector('[data-role="grid"]');
   grid.innerHTML = MODELS.map(function(m){
@@ -661,7 +688,7 @@ function renderHub(main){
 
 function renderModel(main, model){
   main.innerHTML =
-    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← MLIP Hub</a></div>' +
+    '<div class="crumb" style="margin-bottom:14px"><a data-role="back">← Usefulness Boundary Hub</a></div>' +
     '<div class="model-header"><h1>'+esc(model.name)+'</h1><span class="chip">'+esc(ARCHITECTURES[model.architectureId].name)+'</span></div>' +
     '<div class="tabs" role="tablist" data-role="tabs"></div>' +
     '<div class="panel" data-role="panel"></div>';
