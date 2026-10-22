@@ -1,0 +1,16 @@
+[Unit]
+Description=MLIP Hub Recommender (proxy to local Ollama)
+After=network.target ollama.service
+
+[Service]
+ExecStart=/usr/bin/python3 -I /home/daraakdag/hackathon/osi-mlips/server/recommender.py
+Environment=OLLAMA_MODEL=qwen3:30b-a3b-instruct-2507-q4_K_M
+User=daraakdag
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

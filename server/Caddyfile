@@ -1,0 +1,27 @@
+{
+	email akdag_da@hotmail.com
+}
+
+35-204-59-194.sslip.io {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+	encode gzip
+
+	# Only the Recommender endpoint is proxied; Ollama itself is never exposed.
+	handle /api/recommend {
+		request_body {
+			max_size 256KB
+		}
+		reverse_proxy 127.0.0.1:8787
+	}
+	handle /api/* {
+		respond 404
+	}
+	handle {
+		root * /home/daraakdag/hackathon/osi-mlips/app
+		file_server
+	}
+}

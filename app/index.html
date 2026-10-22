@@ -363,7 +363,25 @@ var activeUnsubs = [];
 function teardownSubs(){ activeUnsubs.forEach(function(u){ try{u();}catch(e){} }); activeUnsubs = []; }
 
 /* ---- sample wiring (Recommender) ---- */
-var samplePromise = (window.claude && window.claude.use) ? window.claude.use("sample").catch(function(){return null;}) : Promise.resolve(null);
+var samplePromise = (window.claude && window.claude.use) ? window.claude.use("sample").catch(function(){return null;}) : localSample();
+
+/* Self-hosted fallback: same json(messages, opts) shape as `sample`, backed by server/recommender.py */
+function localSample(){
+  function fail(code){ var e = new Error(code); e.code = code; throw e; }
+  return fetch("api/recommend").then(function(r){ return r.ok ? {
+    json: function(messages, opts){
+      return fetch("api/recommend", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: messages }), signal: opts && opts.signal
+      }).then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(body){
+          if (!r.ok) fail(body.error === "rate_limited" || body.error === "invalid_json" || body.error === "empty_completion" ? body.error : "upstream");
+          return body;
+        });
+      }, function(err){ fail(err && err.name === "AbortError" ? "cancelled" : "network"); });
+    }
+  } : null; }).catch(function(){ return null; });
+}
 
 /* generic live annotation list+form, mounted into `el` */
 function mountAnnotations(el, opts){
