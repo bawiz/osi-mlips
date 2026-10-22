@@ -150,6 +150,38 @@ input[type=text]:focus,textarea:focus,select:focus{outline:2px solid var(--accen
 .decomp-legend{display:flex;gap:16px;font-size:12px;color:var(--fg-muted);margin-top:8px}
 .decomp-legend .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
 .decomp-disabled{font-size:13px;color:var(--fg-faint);max-width:560px}
+.purpose-table{width:100%;max-width:780px;border-collapse:collapse;font-size:13px;margin-bottom:4px}
+.purpose-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--fg-faint);padding:6px 10px;border-bottom:1px solid var(--border-strong)}
+.purpose-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.purpose-table tr.purpose-future td{color:var(--fg-faint)}
+.purpose-status{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.purpose-status.evaluated{color:var(--good)}
+.purpose-status.future{color:var(--fg-faint)}
+.err-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;max-width:760px}
+.err-label{flex:0 0 190px;font-size:13px;min-width:0}
+.err-track{flex:1;height:10px;background:var(--bg-sunken);border-radius:999px;overflow:hidden;position:relative}
+.err-fill{height:100%;border-radius:999px;background:var(--accent)}
+.err-expected-marker{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg-faint)}
+.err-score{flex:0 0 40px;font-family:var(--font-mono);font-size:12px;text-align:right}
+.err-legend{display:flex;gap:16px;font-size:12px;color:var(--fg-muted);margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.err-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.err-legend .mark{display:inline-block;width:2px;height:10px;background:var(--fg-faint);margin-right:5px;vertical-align:middle}
+.err-headline{font-size:14px;margin-bottom:10px;max-width:660px}
+.calib-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;max-width:760px}
+.calib-label{flex:0 0 190px;font-size:13px;min-width:0}
+.calib-track{flex:1;height:10px;background:var(--bg-sunken);border-radius:999px;overflow:hidden;position:relative}
+.calib-fill{height:100%;border-radius:999px}
+.calib-nominal-marker{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg)}
+.calib-score{flex:0 0 96px;font-family:var(--font-mono);font-size:12px;text-align:right}
+.calib-legend{display:flex;gap:16px;font-size:12px;color:var(--fg-muted);margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.calib-legend .mark{display:inline-block;width:2px;height:10px;background:var(--fg);margin-right:5px;vertical-align:middle}
+.calib-headline{font-size:14px;margin-bottom:10px;max-width:660px}
+.simrel-headline{font-size:14px;margin-bottom:10px;max-width:660px}
+.simrel-timeline{display:flex;gap:4px;align-items:flex-end;height:40px;margin-bottom:4px;max-width:760px}
+.simrel-step{flex:1;min-width:6px;border-radius:3px}
+.simrel-step.flagged{outline:2px solid var(--fg);outline-offset:1px}
+.simrel-steps{display:flex;gap:4px;font-size:10px;color:var(--fg-faint);margin-bottom:12px;max-width:760px}
+.simrel-steps span{flex:1;text-align:center}
 footer{border-top:1px solid var(--border);padding-block:18px 32px;margin-top:10px}
 footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 .fm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:14px;align-items:start}
@@ -242,7 +274,43 @@ var MODELS = [
       { label: "Bulk Si (diamond cubic)", score: 12, tier: "good", note: "Close to the training distribution — an ordered bulk elemental semiconductor." },
       { label: "Fe–Ni random solid solution", score: 48, tier: "warning", note: "Disordered alloy chemistry is underrepresented relative to ordered compounds in the training set." },
       { label: "Liquid water, 300K AIMD snapshot", score: 91, tier: "critical", note: "No molecular liquids in training data — matches the declared scope exclusion." }
-    ]
+    ],
+    errorDetection: {
+      evaluated: true,
+      headline: "The most uncertain 10% of configurations contain 61% of the largest force errors — well above the 10% you'd expect if uncertainty carried no signal.",
+      note: "Illustrative example: ranking held-out bulk-crystal relaxation configurations by predicted force uncertainty and checking where the largest true force errors (vs. DFT) land.",
+      buckets: [
+        { label: "Top 5% most uncertain", capturedPct: 38, expectedPct: 5 },
+        { label: "Top 10% most uncertain", capturedPct: 61, expectedPct: 10 },
+        { label: "Top 25% most uncertain", capturedPct: 84, expectedPct: 25 },
+        { label: "Remaining 75%", capturedPct: 16, expectedPct: 75 }
+      ]
+    },
+    calibration: {
+      evaluated: true,
+      headline: "Intervals run overconfident: a nominal 90% interval contains the true force only about 71% of the time.",
+      note: "Illustrative example: checking whether nominal force-prediction intervals contain the DFT-reference force at the stated rate, across the same held-out bulk-crystal configurations.",
+      rows: [
+        { nominal: 50, observed: 41 },
+        { nominal: 80, observed: 63 },
+        { nominal: 90, observed: 71 },
+        { nominal: 95, observed: 79 }
+      ]
+    },
+    simulationReliability: {
+      evaluated: true,
+      headline: "In this illustrative fracture-surface relaxation, the OOD score crosses into the out-of-distribution band 20 steps before force error roughly triples — a plausible point to stop and validate with DFT before trusting the resulting structure.",
+      note: "Illustrative example: tracking the OOD distance score across a running relaxation trajectory, to see whether it flags the point where force errors grow large enough to change the scientific conclusion.",
+      trajectory: [
+        { step: 0, score: 14, tier: "good" },
+        { step: 20, score: 19, tier: "good" },
+        { step: 40, score: 31, tier: "warning" },
+        { step: 60, score: 58, tier: "warning" },
+        { step: 80, score: 77, tier: "critical" },
+        { step: 100, score: 86, tier: "critical" }
+      ],
+      flagStep: 60
+    }
   },
   {
     id: "mace-off23",
@@ -256,7 +324,26 @@ var MODELS = [
       { label: "Caffeine, gas-phase conformer", score: 9, tier: "good", note: "A small drug-like organic molecule — squarely inside SPICE coverage." },
       { label: "Aspirin + 4 explicit waters", score: 55, tier: "warning", note: "Explicit solvation shells are only sparsely covered." },
       { label: "Bulk NaCl crystal", score: 95, tier: "critical", note: "No periodic solids in training data — matches the declared scope exclusion." }
-    ]
+    ],
+    errorDetection: {
+      evaluated: true,
+      headline: "The most uncertain 10% of conformers contain 44% of the largest force errors — a weaker but still positive signal than seen on MACE-MP-0's bulk-crystal set.",
+      note: "Illustrative example: ranking held-out SPICE-derived organic-molecule conformers by predicted force uncertainty and checking where the largest force errors land.",
+      buckets: [
+        { label: "Top 5% most uncertain", capturedPct: 22, expectedPct: 5 },
+        { label: "Top 10% most uncertain", capturedPct: 44, expectedPct: 10 },
+        { label: "Top 25% most uncertain", capturedPct: 68, expectedPct: 25 },
+        { label: "Remaining 75%", capturedPct: 32, expectedPct: 75 }
+      ]
+    },
+    calibration: {
+      evaluated: false,
+      note: "No held-out interval-coverage study has been run on this checkpoint yet."
+    },
+    simulationReliability: {
+      evaluated: false,
+      note: "No example simulation trajectory has been recorded for this checkpoint yet."
+    }
   }
 ];
 
@@ -666,7 +753,7 @@ var RECOMMENDER_RULES = [
   "A viewer describes a use case; your job is to say which catalogued Model(s) fit it, and why, grounded ONLY in the CATALOGUED_DATA JSON given below.",
   "Hard rule: never use outside or general knowledge about these architectures or models beyond what CATALOGUED_DATA states. If nothing in it is relevant to the question, say so plainly instead of guessing or filling the gap from what you already know.",
   "You may name a Known Variant (an entry in a model's knownVariants[], not a full Model) when it is the best fit for the use case — e.g. when a failure mode's mitigations point to one — but you must say explicitly that it is a lightweight stub with no full Model Page (no Lenses), not a fully catalogued Model.",
-  "A model's \"ood\" and \"decomposition\" fields are illustrative placeholder data standing in for a real pipeline, not validated benchmark numbers — say so in the reply whenever you cite one, and set that citation's illustrative field to true.",
+  "A model's \"ood\", \"decomposition\", \"errorDetection\", \"calibration\", and \"simulationReliability\" fields are illustrative placeholder data standing in for a real pipeline, not validated benchmark numbers — say so in the reply whenever you cite one, and set that citation's illustrative field to true. A null value for any of those fields means that UQ purpose hasn't been evaluated for that model yet — say so plainly rather than inferring it from other fields.",
   "Write \"reply\" as plain prose sentences and real line breaks only — no markdown syntax (no **, #, or - bullets), since it renders as plain text.",
   "Reply with ONLY one JSON object, no markdown code fences and no text outside it: {\"reply\": string, \"citations\": array}.",
   "In \"reply\", cite a source immediately after the claim it supports using the literal token {{n}} where n is a 1-based integer — no other citation style (no footnotes, no links, no bare model names standing in as a citation).",
@@ -689,6 +776,9 @@ function buildRecommenderCorpus(){
         scopeGood: m.scopeGood, scopeNot: m.scopeNot, trainingSummary: m.trainingSummary,
         ood: (m.oodExamples || []).map(function(x){ return { label: x.label, score: x.score, tier: x.tier, note: x.note }; }),
         decomposition: m.supportsDecomposition ? { note: m.decompositionNote, examples: m.decompositionExamples } : null,
+        errorDetection: (m.errorDetection && m.errorDetection.evaluated) ? { headline: m.errorDetection.headline, note: m.errorDetection.note } : null,
+        calibration: (m.calibration && m.calibration.evaluated) ? { headline: m.calibration.headline, note: m.calibration.note } : null,
+        simulationReliability: (m.simulationReliability && m.simulationReliability.evaluated) ? { headline: m.simulationReliability.headline, note: m.simulationReliability.note } : null,
         failureModes: lit.phenomena.map(function(fm){
           return {
             id: fm.id, name: fm.name, symptom: fm.symptom, rootCause: fm.rootCause || null,
@@ -949,6 +1039,87 @@ function renderDecompositionChart(model){
   return html;
 }
 
+/* ---- UQ purposes: six distinct questions UQ can answer, four built out as Hub content ---- */
+var UQ_PURPOSES = [
+  { key: "calibration", label: "Calibration", question: "Does uncertainty have the right quantitative meaning?" },
+  { key: "errorDetection", label: "Error detection", question: "Can uncertainty identify bad predictions?" },
+  { key: "activeLearning", label: "Active learning", question: "Which new calculation should I run next?" },
+  { key: "distributionShift", label: "Distribution-shift detection", question: "Has the input distribution changed?" },
+  { key: "modelComparison", label: "Model comparison", question: "Which candidate is more reliable for this task?" },
+  { key: "simulationReliability", label: "Simulation reliability", question: "Does the uncertainty protect the scientific conclusion?" }
+];
+var UQ_PURPOSES_NOT_BUILT = { activeLearning: true, modelComparison: true };
+
+function renderPurposeTable(model){
+  var rows = UQ_PURPOSES.map(function(p){
+    var notBuilt = UQ_PURPOSES_NOT_BUILT[p.key];
+    var evaluated = p.key === "distributionShift" ? true : (!notBuilt && model[p.key] && model[p.key].evaluated);
+    var statusLabel = notBuilt ? "Not built on this Hub yet" : (evaluated ? "Evaluated below" : "Not yet evaluated for this checkpoint");
+    var statusClass = notBuilt ? "future" : (evaluated ? "evaluated" : "future");
+    return '<tr class="'+(statusClass==="future"?"purpose-future":"")+'">' +
+      '<td>'+esc(p.label)+'</td><td>'+esc(p.question)+'</td>' +
+      '<td><span class="purpose-status '+statusClass+'">'+esc(statusLabel)+'</span></td></tr>';
+  }).join("");
+  return '<table class="purpose-table"><thead><tr><th>Purpose</th><th>Core question</th><th>Status for this checkpoint</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function renderErrorDetectionChart(model){
+  var ed = model.errorDetection;
+  if (!ed || !ed.evaluated){
+    return '<p class="placeholder-box">'+esc((ed && ed.note) || "No error-detection study has been run on this checkpoint yet.")+'</p>';
+  }
+  var html = '<p class="err-headline">'+esc(ed.headline)+'</p>';
+  html += '<div class="err-legend"><span><span class="dot" style="background:var(--accent)"></span>Share of largest force errors captured</span>' +
+    '<span><span class="mark"></span>Share expected if uncertainty carried no signal</span></div>';
+  html += ed.buckets.map(function(b){
+    return '<div class="err-row">' +
+      '<div class="err-label">'+esc(b.label)+'</div>' +
+      '<div class="err-track"><div class="err-fill" style="width:'+b.capturedPct+'%"></div>' +
+        '<div class="err-expected-marker" style="left:'+b.expectedPct+'%"></div></div>' +
+      '<div class="err-score mono">'+b.capturedPct+'%</div>' +
+      '</div>';
+  }).join("");
+  html += '<p class="illustrative-note">'+esc(ed.note)+'</p>';
+  return html;
+}
+
+function renderCalibrationChart(model){
+  var c = model.calibration;
+  if (!c || !c.evaluated){
+    return '<p class="placeholder-box">'+esc((c && c.note) || "No interval-coverage study has been run on this checkpoint yet.")+'</p>';
+  }
+  var html = '<p class="calib-headline">'+esc(c.headline)+'</p>';
+  html += '<div class="calib-legend"><span><span class="mark"></span>Nominal confidence level</span><span>Bar = observed coverage on held-out data</span></div>';
+  html += c.rows.map(function(r){
+    var color = r.observed >= r.nominal ? "var(--good)" : (r.observed >= r.nominal - 15 ? "var(--warning)" : "var(--critical)");
+    return '<div class="calib-row">' +
+      '<div class="calib-label">Nominal '+r.nominal+'% interval</div>' +
+      '<div class="calib-track"><div class="calib-fill" style="width:'+r.observed+'%;background:'+color+'"></div>' +
+        '<div class="calib-nominal-marker" style="left:'+r.nominal+'%"></div></div>' +
+      '<div class="calib-score mono">'+r.observed+'% observed</div>' +
+      '</div>';
+  }).join("");
+  html += '<p class="illustrative-note">'+esc(c.note)+'</p>';
+  return html;
+}
+
+function renderSimulationReliability(model){
+  var s = model.simulationReliability;
+  if (!s || !s.evaluated){
+    return '<p class="placeholder-box">'+esc((s && s.note) || "No example simulation run has been recorded for this checkpoint yet.")+'</p>';
+  }
+  var html = '<p class="simrel-headline">'+esc(s.headline)+'</p>';
+  html += '<div class="simrel-timeline">' + s.trajectory.map(function(pt){
+    var color = TIER_COLOR[pt.tier] || TIER_COLOR.warning;
+    var h = Math.max(6, Math.round(pt.score/100*40));
+    var cls = "simrel-step" + (pt.step === s.flagStep ? " flagged" : "");
+    return '<div class="'+cls+'" style="height:'+h+'px;background:'+color+'" title="Step '+pt.step+': OOD score '+pt.score+'"></div>';
+  }).join("") + '</div>';
+  html += '<div class="simrel-steps mono">' + s.trajectory.map(function(pt){ return '<span>'+pt.step+'</span>'; }).join("") + '</div>';
+  html += '<p class="illustrative-note">'+esc(s.note)+'</p>';
+  return html;
+}
+
 /* ---- lens panels ---- */
 function renderDescriptive(panel, model, focusFmId){
   var arch = ARCHITECTURES[model.architectureId];
@@ -974,19 +1145,42 @@ function renderMechanistic(panel, model){ mountMechanisticLens(panel, model); }
 
 function renderBayesian(panel, model){
   panel.innerHTML =
-    '<div class="section"><h2>Out-of-distribution detection</h2>' +
+    '<div class="section"><h2>What the uncertainty is for</h2>' +
+      '<p class="prose" style="margin-bottom:12px">Uncertainty quantification answers several distinct scientific questions, and doing well at one doesn’t imply doing well at another — a well-calibrated estimate can still rank errors poorly, and a model can be confidently wrong on an unfamiliar structure. This Hub records, per checkpoint, which of these purposes have actually been evaluated rather than making one blanket “has UQ” claim.</p>' +
+      '<div data-role="purposes"></div>' +
+    '</div>' +
+    '<div class="section"><h2>Error detection</h2>' +
+      '<p class="prose" style="margin-bottom:12px">Does higher uncertainty identify the predictions most likely to be wrong — so you know which configurations need a closer look?</p>' +
+      '<div data-role="errdet"></div>' +
+    '</div>' +
+    '<div class="section"><h2>Calibration</h2>' +
+      '<p class="prose" style="margin-bottom:12px">When the model expresses a given level of uncertainty, does its observed error actually match that level?</p>' +
+      '<div data-role="calib"></div>' +
+    '</div>' +
+    '<div class="section"><h2>Distribution-shift detection</h2>' +
       '<p class="illustrative-note">Illustrative example data — stands in for a real distance-to-training-distribution pipeline, precomputed offline per example structure.</p>' +
       '<div data-role="ood"></div>' +
     '</div>' +
-    '<div class="section"><h2>Epistemic vs. aleatoric</h2><div data-role="decomp"></div></div>' +
+    '<div class="section"><h2>Epistemic vs. aleatoric</h2>' +
+      '<p class="prose" style="margin-bottom:12px">A secondary breakdown of where a model’s uncertainty comes from — useful for interpreting the error-detection and distribution-shift evidence above, not a purpose on its own.</p>' +
+      '<div data-role="decomp"></div>' +
+    '</div>' +
+    '<div class="section"><h2>Simulation reliability</h2>' +
+      '<p class="prose" style="margin-bottom:12px">Good per-configuration uncertainty doesn’t automatically mean a long trajectory or a derived property stays trustworthy — that relationship has to be checked directly.</p>' +
+      '<div data-role="simrel"></div>' +
+    '</div>' +
     '<div class="section"><h2>Community notes <span class="chip" style="margin-left:6px">Community</span></h2><div data-role="bayesnotes"></div></div>';
 
+  panel.querySelector('[data-role="purposes"]').innerHTML = renderPurposeTable(model);
+  panel.querySelector('[data-role="errdet"]').innerHTML = renderErrorDetectionChart(model);
+  panel.querySelector('[data-role="calib"]').innerHTML = renderCalibrationChart(model);
   panel.querySelector('[data-role="ood"]').innerHTML = renderOodChart(model);
   panel.querySelector('[data-role="decomp"]').innerHTML = renderDecompositionChart(model);
+  panel.querySelector('[data-role="simrel"]').innerHTML = renderSimulationReliability(model);
   mountAnnotations(panel.querySelector('[data-role="bayesnotes"]'), {
     collection: "bayesianAnnotations",
     modelId: model.id,
-    placeholder: "Dispute an OOD call, or report a miscalibration you observed",
+    placeholder: "Dispute an OOD call, report a miscalibration, or flag a case where high/low uncertainty didn’t predict error the way you’d expect",
     emptyText: "No community notes yet — be the first to add one."
   });
 }
