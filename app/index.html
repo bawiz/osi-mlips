@@ -40,7 +40,7 @@ a{color:var(--accent)}
 .page{
   padding-left:max(16px, env(safe-area-inset-left,0px));
   padding-right:max(16px, env(safe-area-inset-right,0px));
-  max-width:860px;margin:0 auto;
+  max-width:1100px;margin:0 auto;
 }
 .crumb{color:var(--fg-muted);font-size:13px;display:flex;align-items:baseline;gap:8px}
 .crumb a{text-decoration:none;cursor:pointer}
@@ -88,6 +88,8 @@ main{padding-block:28px 60px}
 .scope-list li{padding-left:16px;position:relative}
 .scope-col.good li::before{content:"+";position:absolute;left:0;color:var(--good);font-weight:700}
 .scope-col.not li::before{content:"\2013";position:absolute;left:0;color:var(--critical);font-weight:700}
+.desc-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media (max-width:680px){.desc-row{grid-template-columns:1fr}}
 .placeholder-box{
   border:1px dashed var(--border-strong);border-radius:8px;padding:16px;
   color:var(--fg-faint);font-size:13px;max-width:560px;
@@ -97,13 +99,13 @@ main{padding-block:28px 60px}
   padding:8px 12px;border-left:2px solid var(--border-strong);
 }
 .annotation-section{margin-top:10px;max-width:620px}
-.annotation-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.annotation-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:10px;margin-bottom:14px;align-items:start}
 .annotation-item{background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
 .annotation-item .who{font-family:var(--font-mono);font-size:12px;color:var(--accent-strong)}
 .annotation-item .when{font-size:11px;color:var(--fg-faint);margin-left:6px}
 .annotation-item .text{font-size:14px;margin-top:4px}
 .annotation-empty{font-size:13px;color:var(--fg-faint);padding:12px 0}
-.annotation-form{display:flex;flex-direction:column;gap:8px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:12px}
+.annotation-form{display:flex;flex-direction:column;gap:8px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:12px;max-width:560px}
 .annotation-form .row{display:flex;gap:8px;flex-wrap:wrap}
 .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
 .field label{font-size:11px;color:var(--fg-faint);text-transform:uppercase;letter-spacing:.03em}
@@ -125,15 +127,15 @@ input[type=text]:focus,textarea:focus,select:focus{outline:2px solid var(--accen
 .finding-phenomenon{font-size:14px}
 .finding-subset{font-size:12px;color:var(--fg-muted)}
 .finding-writeup{font-size:14px;color:var(--fg);white-space:pre-wrap}
-.ood-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;max-width:620px}
+.ood-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;max-width:760px}
 .ood-label{flex:0 0 190px;font-size:13px;min-width:0}
 .ood-track{flex:1;height:10px;background:var(--bg-sunken);border-radius:999px;overflow:hidden;position:relative}
 .ood-fill{height:100%;border-radius:999px}
 .ood-score{flex:0 0 34px;font-family:var(--font-mono);font-size:12px;text-align:right}
 .ood-legend{display:flex;gap:14px;font-size:12px;color:var(--fg-muted);margin-bottom:14px;flex-wrap:wrap}
 .ood-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
-.ood-note{font-size:12px;color:var(--fg-faint);margin-top:-6px;margin-bottom:12px;max-width:560px}
-.decomp-row{margin-bottom:14px;max-width:560px}
+.ood-note{font-size:12px;color:var(--fg-faint);margin-top:-6px;margin-bottom:12px;max-width:700px}
+.decomp-row{margin-bottom:14px;max-width:700px}
 .decomp-label{font-size:13px;margin-bottom:5px}
 .decomp-bar{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--bg-sunken)}
 .decomp-seg.epistemic{background:var(--series-epistemic)}
@@ -143,6 +145,27 @@ input[type=text]:focus,textarea:focus,select:focus{outline:2px solid var(--accen
 .decomp-disabled{font-size:13px;color:var(--fg-faint);max-width:560px}
 footer{border-top:1px solid var(--border);padding-block:18px 32px;margin-top:10px}
 footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:14px;align-items:start}
+.fm-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.fm-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.fm-name{font-weight:600;font-size:15px}
+.fm-grade{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;border-radius:999px;border:1px solid var(--border);color:var(--fg-muted);cursor:help}
+.fm-grade-direct{color:var(--good);border-color:var(--good)}
+.fm-grade-inherited{color:var(--warning);border-color:var(--warning)}
+.fm-symptom{font-size:14px;margin-bottom:6px}
+.fm-meta{font-size:13px;color:var(--fg-muted);margin:0 0 4px}
+.fm-mitigations{font-size:13px;color:var(--fg-muted);margin-bottom:4px}
+.fm-mitigations ul{margin:4px 0 0 18px;padding:0}
+.fm-status{font-size:12px;color:var(--fg-faint);font-style:italic;margin-bottom:4px}
+.fm-evidence h4{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-faint);margin:10px 0 6px}
+.ev-item{border-left:2px solid var(--border-strong);padding:4px 0 4px 10px;margin-bottom:6px;font-size:13px}
+.ev-item.ev-community{border-left-color:var(--accent)}
+.ev-tag{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--fg-faint);margin-right:6px}
+.ev-tag-community{color:var(--accent-strong)}
+.ev-cite{font-size:11px;color:var(--fg-faint);margin-top:2px}
+.ev-cite a{color:var(--fg-faint);text-decoration:underline}
+.fm-add-toggle{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0}
+.fm-add-form{margin-top:8px}
 [hidden]{display:none!important}
 </style>
 
@@ -279,6 +302,154 @@ function mountAnnotations(el, opts){
         btn.disabled = false;
       });
     });
+  });
+}
+
+/* ---- Known Failure Modes (curator phenomena + literature/community Evidence) ---- */
+var EVIDENCE_GRADE_CLASS = { "direct": "fm-grade-direct", "direct+inherited": "fm-grade-direct", "inherited": "fm-grade-inherited" };
+var literatureCache = {};
+
+function fetchLiterature(modelId){
+  if (literatureCache[modelId]) return literatureCache[modelId];
+  var p = fetch("data/" + modelId + ".json").then(function(r){
+    if (!r.ok) return null;
+    return r.json();
+  }).catch(function(){ return null; });
+  literatureCache[modelId] = p;
+  return p;
+}
+
+function adaptLiterature(raw, modelId){
+  var refsById = {};
+  (raw.references || []).forEach(function(r){ refsById[r.id] = r; });
+  var mitigationsByFm = {};
+  (raw.mitigations || []).forEach(function(m){
+    (m.failure_modes || []).forEach(function(fmId){
+      (mitigationsByFm[fmId] = mitigationsByFm[fmId] || []).push({ text: m.mitigation, referenceIds: m.references || [] });
+    });
+  });
+  var phenomena = (raw.failure_modes || []).map(function(fm){
+    return {
+      id: fm.id, modelId: modelId, name: fm.name, symptom: fm.symptom,
+      rootCause: fm.root_cause, evidenceGrade: fm.evidence, statusNote: fm.status_in_later_variants,
+      literatureEvidence: (fm.findings || []).map(function(f){ return { text: f.text, referenceIds: f.references || [] }; }),
+      mitigations: mitigationsByFm[fm.id] || []
+    };
+  });
+  return { refsById: refsById, phenomena: phenomena, evidenceGradeLegend: raw.evidence_grades || {} };
+}
+
+function citationHref(ref){ return ref.url || (ref.doi ? "https://doi.org/" + ref.doi : null); }
+function citationLabel(ref){ return (ref.authors || ref.title || "Source") + (ref.venue ? ", " + ref.venue : ""); }
+function renderCitations(ids, refsById){
+  if (!ids || !ids.length) return "";
+  return ids.map(function(id){
+    var ref = refsById[id]; if (!ref) return "";
+    var href = citationHref(ref), label = citationLabel(ref);
+    return href ? '<a href="'+esc(href)+'" target="_blank" rel="noopener">'+esc(label)+'</a>' : esc(label);
+  }).filter(Boolean).join("; ");
+}
+
+function mountKnownFailureModes(container, model){
+  container.classList.add("fm-grid");
+  container.innerHTML = '<p class="annotation-empty">Loading…</p>';
+  var communityByFm = {};
+  var lit = null;
+
+  function draw(){
+    if (!lit || !lit.phenomena.length){
+      container.innerHTML = '<p class="annotation-empty">No known failure modes catalogued yet for this model.</p>';
+      return;
+    }
+    container.innerHTML = lit.phenomena.map(function(fm){
+      var gradeClass = EVIDENCE_GRADE_CLASS[fm.evidenceGrade] || "";
+      var gradeTitle = lit.evidenceGradeLegend[fm.evidenceGrade] || "";
+      var litItems = fm.literatureEvidence.map(function(f){
+        var cites = renderCitations(f.referenceIds, lit.refsById);
+        return '<div class="ev-item ev-lit"><span class="ev-tag">Literature</span>'+esc(f.text)+
+          (cites ? '<div class="ev-cite">'+cites+'</div>' : '') + '</div>';
+      }).join("");
+      var communityItems = (communityByFm[fm.id] || []).map(function(it){
+        return '<div class="ev-item ev-community"><span class="ev-tag ev-tag-community">Community</span>' +
+          '<span class="who mono">'+esc(it.who||"anonymous")+'</span><span class="when">'+timeAgo(it.createdAt||Date.now())+'</span>' +
+          '<div>'+esc(it.text)+'</div>' +
+          (it.citationNote ? '<div class="ev-cite">'+esc(it.citationNote)+'</div>' : '') +
+          '</div>';
+      }).join("");
+      var mitigationsHtml = fm.mitigations.length
+        ? '<p class="fm-mitigations"><strong>Mitigation'+(fm.mitigations.length>1?'s':'')+':</strong><ul>'+
+          fm.mitigations.map(function(m){
+            var cites = renderCitations(m.referenceIds, lit.refsById);
+            return '<li>'+esc(m.text)+(cites?' ('+cites+')':'')+'</li>';
+          }).join("")+'</ul></p>'
+        : "";
+      return '<div class="fm-card">' +
+        '<div class="fm-head"><span class="fm-name">'+esc(fm.name)+'</span>' +
+          (fm.evidenceGrade ? '<span class="fm-grade '+gradeClass+'" title="'+esc(gradeTitle)+'">'+esc(fm.evidenceGrade)+'</span>' : '') +
+        '</div>' +
+        '<p class="fm-symptom">'+esc(fm.symptom)+'</p>' +
+        (fm.rootCause ? '<p class="fm-meta"><strong>Root cause:</strong> '+esc(fm.rootCause)+'</p>' : '') +
+        mitigationsHtml +
+        (fm.statusNote ? '<p class="fm-status">Status in later variants: '+esc(fm.statusNote)+'</p>' : '') +
+        '<div class="fm-evidence"><h4>Evidence</h4><div class="fm-evidence-list">'+litItems+communityItems+'</div>' +
+        '<button type="button" class="fm-add-toggle" data-toggle="'+fm.id+'">+ Add evidence</button>' +
+        '<form class="annotation-form fm-add-form" data-fm-form="'+fm.id+'" hidden>' +
+          '<div class="row">' +
+            '<div class="field"><label>Your name or email</label><input type="text" name="who" maxlength="80" required></div>' +
+          '</div>' +
+          '<div class="field"><label>What did you observe?</label><textarea name="text" rows="2" maxlength="600" required></textarea></div>' +
+          '<div class="field"><label>Citation (optional)</label><input type="text" name="citationNote" maxlength="200" placeholder="A paper, link, or run this came from"></div>' +
+          '<button type="submit" class="btn">Add evidence</button>' +
+          '<p class="form-note" data-note="'+fm.id+'">Visible to everyone who opens this page, right away. No review queue.</p>' +
+        '</form>' +
+        '</div>';
+    }).join("");
+
+    container.querySelectorAll("[data-toggle]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var f = container.querySelector('[data-fm-form="'+btn.getAttribute("data-toggle")+'"]');
+        f.hidden = !f.hidden;
+      });
+    });
+    container.querySelectorAll("[data-fm-form]").forEach(function(formEl){
+      var fmId = formEl.getAttribute("data-fm-form");
+      formEl.addEventListener("submit", function(e){
+        e.preventDefault();
+        var who = formEl.who.value.trim(), text = formEl.text.value.trim(), citationNote = formEl.citationNote.value.trim();
+        if (!who || !text) return;
+        dbPromise.then(function(db){
+          if (!db) return;
+          var btn = formEl.querySelector("button[type=submit]"); btn.disabled = true;
+          var body = { modelId: model.id, failureModeId: fmId, who: who, text: text, createdAt: Date.now() };
+          if (citationNote) body.citationNote = citationNote;
+          db.collection("communityEvidence").add(body).then(function(){
+            formEl.reset(); formEl.hidden = true; btn.disabled = false;
+          }).catch(function(){
+            var note = container.querySelector('[data-note="'+fmId+'"]');
+            if (note) note.textContent = "Couldn’t save that — you may need to be signed in to claude.ai.";
+            btn.disabled = false;
+          });
+        });
+      });
+    });
+  }
+
+  fetchLiterature(model.id).then(function(raw){
+    lit = raw ? adaptLiterature(raw, model.id) : { refsById: {}, phenomena: [], evidenceGradeLegend: {} };
+    draw();
+  });
+
+  dbPromise.then(function(db){
+    if (!db) return;
+    var unsub = db.collection("communityEvidence").where("modelId", "==", model.id).onSnapshot(function(snap){
+      communityByFm = {};
+      snap.docs.forEach(function(d){
+        var data = d.data();
+        (communityByFm[data.failureModeId] = communityByFm[data.failureModeId] || []).push(data);
+      });
+      draw();
+    });
+    activeUnsubs.push(unsub);
   });
 }
 
@@ -419,17 +590,17 @@ function renderDescriptive(panel, model){
       '<div class="scope-col good"><h3>Good for</h3><ul class="scope-list">'+model.scopeGood.map(function(s){return "<li>"+esc(s)+"</li>";}).join("")+'</ul></div>' +
       '<div class="scope-col not"><h3>Not for</h3><ul class="scope-list">'+model.scopeNot.map(function(s){return "<li>"+esc(s)+"</li>";}).join("")+'</ul></div>' +
     '</div></div>' +
-    '<div class="section"><h2>Training data</h2><p class="prose">'+esc(model.trainingSummary)+'</p></div>' +
-    '<div class="section"><h2>Architecture ('+esc(arch.name)+')</h2><p class="prose">'+esc(arch.note)+'</p></div>' +
+    '<div class="desc-row" style="margin-bottom:30px">' +
+      '<div class="section" style="margin-bottom:0"><h2>Training data</h2><p class="prose">'+esc(model.trainingSummary)+'</p></div>' +
+      '<div class="section" style="margin-bottom:0"><h2>Architecture ('+esc(arch.name)+')</h2><p class="prose">'+esc(arch.note)+'</p></div>' +
+    '</div>' +
     '<div class="section"><h2>Benchmark figures</h2><div class="placeholder-box">No sourced benchmark numbers entered yet. A real deployment would show energy/force error here, each figure linked to the paper, leaderboard, or run it came from — no number without a source.</div></div>' +
-    '<div class="section"><h2>Known failure modes <span class="chip" style="margin-left:6px">Community</span></h2><div data-role="kfm"></div></div>';
+    '<div class="section"><h2>Known failure modes</h2>' +
+      '<p class="prose" style="margin-bottom:12px">Named phenomena curated from the literature (and from maintainer review), each with the evidence behind it. The community can’t name a new one, but can add evidence — their own report, or a citation — to any phenomenon already here.</p>' +
+      '<div data-role="kfm"></div>' +
+    '</div>';
 
-  mountAnnotations(panel.querySelector('[data-role="kfm"]'), {
-    collection: "knownFailureModes",
-    modelId: model.id,
-    placeholder: "Describe a case where this model performed poorly",
-    emptyText: "No failure modes reported yet — be the first to share one."
-  });
+  mountKnownFailureModes(panel.querySelector('[data-role="kfm"]'), model);
 }
 
 function renderMechanistic(panel, model){ mountMechanisticLens(panel, model); }

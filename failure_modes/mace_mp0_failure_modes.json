@@ -1,0 +1,318 @@
+{
+  "title": "MACE-MP-0 Known Failure Modes",
+  "as_of": "2026-10-22",
+  "model_scope": "Original MACE-MP-0 ('0a', mostly the medium model) unless noted. Later variants (0b, 0b2, 0b3, MPA-0, OMAT-0) are referenced in status fields.",
+  "evidence_grades": {
+    "direct": "MACE-MP-0 explicitly tested in the cited work.",
+    "inherited": "Shown for the MPtrj training data or for sibling models trained on it; applies to MACE-MP-0 by construction.",
+    "direct+inherited": "Both direct tests and inherited evidence exist.",
+    "direct (mixed)": "Direct tests exist but results conflict across studies."
+  },
+  "failure_modes": [
+    {
+      "id": "F1",
+      "name": "Systematic PES softening",
+      "symptom": "Energies, forces and PES curvature under-predicted away from equilibrium.",
+      "root_cause": "Near-equilibrium sampling bias of the MPtrj training set.",
+      "evidence": "direct",
+      "status_in_later_variants": "Reduced in MPA-0 / OMAT-0; correctable by fine-tuning.",
+      "findings": [
+        {
+          "text": "M3GNet, CHGNet and MACE-MP-0 all under-predict energies and forces across surfaces, defects, solid solutions, phonons, ion-migration barriers and high-energy states; cause is under-predicted PES curvature. A single extra DFT point in fine-tuning largely corrects it.",
+          "references": ["R2"]
+        },
+        {
+          "text": "EC/EMC carbonate liquid with MACE-MP-0 + D3 gave a density of ~0.72 g/cm3 (too low), attributed to softening.",
+          "references": ["R18"]
+        }
+      ],
+      "notes": "F2-F6 are largely specific manifestations of F1.",
+      "references": ["R2", "R18"]
+    },
+    {
+      "id": "F2",
+      "name": "Under-estimated or imaginary phonons",
+      "symptom": "Optical modes too soft; spurious imaginary modes (e.g. MOFs); phonon DOS errors.",
+      "root_cause": "PES softening plus few displaced configurations in training data.",
+      "evidence": "direct",
+      "status_in_later_variants": "Partly fixed in MACE-MP-0b3; MACE-OMAT-0 much better.",
+      "findings": [
+        {
+          "text": "Under-estimates high-frequency optical modes relative to PBE across 103 compounds.",
+          "references": ["R4"]
+        },
+        {
+          "text": "In MOFs, reproduces equilibrium structures but gives imaginary modes and poor phonon DOS; fixed by fine-tuned MACE-MP-MOF0.",
+          "references": ["R6"]
+        },
+        {
+          "text": "Inelastic neutron scattering benchmark: phonon DOS agreement worse than MACE-MPA-0 (mean Spearman 0.85 vs 0.89).",
+          "references": ["R7"]
+        },
+        {
+          "text": "Double halide perovskites: phonon bandwidth error with MP-0 about 1-2 THz; later MACE models improve.",
+          "references": ["R8"]
+        },
+        {
+          "text": "Context: a broad benchmark ranks MACE-MP-0 second of seven uMLIPs for harmonic phonons, so the failure is quantitative rather than catastrophic for typical inorganic crystals.",
+          "references": ["R26"]
+        }
+      ],
+      "references": ["R2", "R4", "R6", "R7", "R8", "R26"]
+    },
+    {
+      "id": "F3",
+      "name": "Poor lattice thermal conductivity",
+      "symptom": "Large errors in thermal conductivity and Grueneisen parameters despite decent force accuracy.",
+      "root_cause": "Errors in 2nd/3rd-order interatomic force constants.",
+      "evidence": "direct",
+      "status_in_later_variants": "Not addressed within the MP-0 line.",
+      "findings": [
+        {
+          "text": "Large mode-resolved conductivity errors vs DFT-PBE across 103 compounds; conductivity and Grueneisen errors are uncorrelated.",
+          "references": ["R4"]
+        },
+        {
+          "text": "Across 2,429 OQMD materials, force accuracy comparable to EquiformerV2 but IFC discrepancies led to poor thermal-conductivity predictions.",
+          "references": ["R5"]
+        }
+      ],
+      "notes": "Good force MAE does not guarantee good anharmonic properties.",
+      "references": ["R4", "R5"]
+    },
+    {
+      "id": "F4",
+      "name": "Surface and cleavage energies too low",
+      "symptom": "Surface energies mostly under-estimated.",
+      "root_cause": "Surfaces are out-of-distribution (bulk-only training data).",
+      "evidence": "direct",
+      "status_in_later_variants": "Fine-tuning recommended.",
+      "findings": [
+        {
+          "text": "On Materials Project surfaces, MACE was the most accurate of three uMLIPs but mostly under-estimated surface energies; errors correlate with out-of-domain distance.",
+          "references": ["R3"]
+        },
+        {
+          "text": "Surface energies are one of the softening benchmarks.",
+          "references": ["R2"]
+        }
+      ],
+      "references": ["R2", "R3"]
+    },
+    {
+      "id": "F5",
+      "name": "Defect energies and migration barriers",
+      "symptom": "Vacancy and migration energies under-estimated; wrong PES topology in some defect systems.",
+      "root_cause": "PES softening; magnetic and defect configurations out-of-distribution.",
+      "evidence": "direct (mixed)",
+      "status_in_later_variants": "Fine-tuning recommended.",
+      "findings": [
+        {
+          "text": "Defect energies and ion-migration barriers systematically under-predicted.",
+          "references": ["R2"]
+        },
+        {
+          "text": "Ag-Li: pure vacancy migration barriers lower than DFT (attributed to softening), though within ~0.05 eV.",
+          "references": ["R9"]
+        },
+        {
+          "text": "Iron sulfides (preprint): flat or wrong-topology PES, [Fe4S4] cubane collapse, unphysical energies / non-convergence on ferrimagnetic greigite, and 1.2-1.5x under-binding where converged.",
+          "references": ["R10"]
+        },
+        {
+          "text": "Counter-evidence: across 574 battery-relevant NEB paths, MACE-MP-0 had the lowest full-set MAE of six foundation models.",
+          "references": ["R11"]
+        }
+      ],
+      "notes": "Chemistry-dependent rather than universal.",
+      "references": ["R2", "R9", "R10", "R11"]
+    },
+    {
+      "id": "F6",
+      "name": "Mechanical properties",
+      "symptom": "Elastic constants and stacking-fault energies inaccurate.",
+      "root_cause": "PES softening; few strained configurations in training.",
+      "evidence": "direct",
+      "status_in_later_variants": "Improved in MPA-0.",
+      "findings": [
+        {
+          "text": "Limited accuracy for elastic constants and stacking-fault energies in elemental alloys.",
+          "references": ["R12"]
+        },
+        {
+          "text": "LAMBench elastic constants: largest error of the ten models listed.",
+          "references": ["R13"]
+        },
+        {
+          "text": "Benchmark on ~11,000 MP materials: MACE mid-pack; fine-tuning on strained configurations degraded it by ~14%, unlike the other three models.",
+          "references": ["R14"]
+        }
+      ],
+      "references": ["R12", "R13", "R14"]
+    },
+    {
+      "id": "F7",
+      "name": "High pressure",
+      "symptom": "Accuracy degrades from 0 to 150 GPa; wrong pressure trends for phase transitions.",
+      "root_cause": "Almost no compressed structures in MPtrj.",
+      "evidence": "direct",
+      "status_in_later_variants": "MACE-MP-0b2 and MPA-0 improve high-pressure stability.",
+      "findings": [
+        {
+          "text": "uMLIP accuracy deteriorates considerably from 0 to 150 GPa due to training-data coverage; targeted fine-tuning fixes it.",
+          "references": ["R15"]
+        },
+        {
+          "text": "MACE-MP-0b2 released to improve high-pressure stability via repulsion regularisation and extra high-pressure examples.",
+          "references": ["R17"]
+        },
+        {
+          "text": "Fe-Ni: MACE foundation models predict an incorrect rise of the bcc-to-hcp transition pressure with Ni content, linked to magnetic collapse.",
+          "references": ["R16"]
+        }
+      ],
+      "references": ["R15", "R16", "R17"]
+    },
+    {
+      "id": "F8",
+      "name": "Short-range repulsion and isolated atoms",
+      "symptom": "Atoms can approach unphysically closely in hot/high-energy MD; wrong isolated-atom energies and dissociation asymptotes.",
+      "root_cause": "No close-contact training data; isolated-atom (E0) treatment.",
+      "evidence": "direct",
+      "status_in_later_variants": "Fixed in MACE-MP-0b (core repulsion, corrected isolated atoms).",
+      "findings": [
+        {
+          "text": "MACE-MP-0b released to improve pair repulsion and correct isolated-atom energies; 0b-series adds core repulsion for more stable MD.",
+          "references": ["R17", "R25", "R12"]
+        }
+      ],
+      "references": ["R12", "R17", "R25"]
+    },
+    {
+      "id": "F9",
+      "name": "Missing dispersion (van der Waals)",
+      "symptom": "Molecular liquids evaporate; densities too low; layered and molecular systems under-bound.",
+      "root_cause": "PBE reference data contain no dispersion.",
+      "evidence": "direct",
+      "status_in_later_variants": "Not in the model; add D3 at runtime.",
+      "findings": [
+        {
+          "text": "Original paper and docs recommend adding D3 for molecular and layered systems.",
+          "references": ["R1"]
+        },
+        {
+          "text": "Without D3, an EC/EMC carbonate liquid evaporates rapidly in MD; with D3 it is stable but under-dense.",
+          "references": ["R18"]
+        }
+      ],
+      "references": ["R1", "R18"]
+    },
+    {
+      "id": "F10",
+      "name": "Mixed PBE / PBE+U energy surfaces",
+      "symptom": "Under-binding or spurious repulsion between U-corrected metals and O/F species (oxidation, adsorption).",
+      "root_cause": "Materials Project applies +U to certain transition metals only when O or F is present, creating two incompatible PESs.",
+      "evidence": "inherited",
+      "status_in_later_variants": "Persists in MPA-0 / OMAT-0; avoided by models trained on +U-free data (e.g. MatPES).",
+      "findings": [
+        {
+          "text": "Models trained on MPtrj, Alexandria or OMat24 interpolate between the GGA and GGA+U surfaces, causing under-binding or spurious repulsion between U-metals and O/F species.",
+          "references": ["R19"]
+        },
+        {
+          "text": "PBE/PBE+U mixing flagged as a source of non-smooth PES features in MP-derived data.",
+          "references": ["R20"]
+        },
+        {
+          "text": "Anomalous O/F adsorption energies on U-block metal surfaces independently rediscovered for MACE-MPA-0.",
+          "references": ["R21"]
+        }
+      ],
+      "notes": "Strongest tests are on MPA-0 / OMAT-0; MACE-MP-0 is trained on the same mixed data.",
+      "references": ["R19", "R20", "R21"]
+    },
+    {
+      "id": "F11",
+      "name": "No magnetism",
+      "symptom": "Cannot distinguish magnetic orderings; fails on magnetic collapse and ferrimagnetic phases.",
+      "root_cause": "No spin degrees of freedom in the model.",
+      "evidence": "direct+inherited",
+      "status_in_later_variants": "Not addressed.",
+      "findings": [
+        {
+          "text": "uMLIPs without spin inputs represent an averaged PES over magnetic configurations and cannot resolve magnetic ordering.",
+          "references": ["R22"]
+        },
+        {
+          "text": "Fe-Ni: magnetic collapse under pressure and magnetoelastic effects not captured.",
+          "references": ["R16"]
+        },
+        {
+          "text": "Ferrimagnetic greigite: unphysical energies and non-convergence.",
+          "references": ["R10"]
+        }
+      ],
+      "references": ["R10", "R16", "R22"]
+    },
+    {
+      "id": "F12",
+      "name": "Molecular chemistry, adsorption and catalysis",
+      "symptom": "Large errors on reaction energies, conformers, CO/CO2 adsorption.",
+      "root_cause": "Few molecules or adsorbates in MPtrj; PBE level of theory.",
+      "evidence": "direct",
+      "status_in_later_variants": "Partly improved in MPA-0.",
+      "findings": [
+        {
+          "text": "Less accurate than MACE-Osaka24 on Transition1x reactions and CO adsorption on high-entropy-alloy nanoparticles (CO adsorption RMSE 0.27-0.41 eV).",
+          "references": ["R23"]
+        },
+        {
+          "text": "LAMBench: scores 0.64 / 0.72 / 0.59 on molecules / inorganic / catalysis; largest Wiggle150 conformer error among listed models.",
+          "references": ["R13"]
+        },
+        {
+          "text": "CO2 adsorption in ZIF-8, ZIF-4 and Mg-MOF-74 (GCMC): MACE-MP-0a and 0b3 show systematic over- or under-estimation.",
+          "references": ["R24"]
+        }
+      ],
+      "references": ["R13", "R23", "R24"]
+    }
+  ],
+  "mitigations": [
+    {"failure_modes": ["F1", "F2", "F3", "F4", "F5", "F6"], "mitigation": "Fine-tune on a handful of task-specific DFT configurations (even one point helps with softening).", "references": ["R2", "R12"]},
+    {"failure_modes": ["F2", "F8"], "mitigation": "Use MACE-MP-0b3 rather than 0a.", "references": ["R17"]},
+    {"failure_modes": ["F7"], "mitigation": "Use MACE-MP-0b2 / MPA-0, or fine-tune on compressed structures.", "references": ["R15", "R17"]},
+    {"failure_modes": ["F9"], "mitigation": "Add D3 dispersion at runtime (mace_mp(dispersion=True)).", "references": ["R1"]},
+    {"failure_modes": ["F10"], "mitigation": "Prefer models trained on +U-free data (e.g. MatPES-based), or shift-correct +U energies before fine-tuning.", "references": ["R19", "R20"]},
+    {"failure_modes": ["F2", "F3"], "mitigation": "Use MACE-OMAT-0 for phonon-heavy work.", "references": ["R17"]},
+    {"failure_modes": ["F11"], "mitigation": "No fix within MACE-MP-0; use spin-aware models or DFT.", "references": ["R22"]}
+  ],
+  "references": [
+    {"id": "R1", "authors": "Batatia et al.", "title": "A foundation model for atomistic materials chemistry", "venue": "J. Chem. Phys. 163, 184110 (2025)", "doi": "10.1063/5.0297006", "url": "https://arxiv.org/abs/2401.00096v3"},
+    {"id": "R2", "authors": "Deng et al.", "title": "Systematic softening in universal machine learning interatomic potentials", "venue": "npj Computational Materials (2025)", "doi": "10.1038/s41524-024-01500-6", "url": "https://ceder.berkeley.edu/publications/2025_Bowen_PES-softening.pdf"},
+    {"id": "R3", "authors": "Focassio, Freitas, Schleder", "title": "Performance assessment of universal machine learning interatomic potentials: challenges and directions for materials' surfaces", "venue": "arXiv 2403.04217", "doi": null, "url": "https://arxiv.org/pdf/2403.04217"},
+    {"id": "R4", "authors": "Póta et al.", "title": "Thermal conductivity predictions with foundation atomistic models", "venue": "arXiv 2408.00755", "doi": null, "url": "https://arxiv.org/pdf/2408.00755"},
+    {"id": "R5", "authors": "Anam et al.", "title": "A comprehensive assessment and benchmark study of large atomistic foundation models for phonons", "venue": "Advanced Intelligent Discovery", "doi": null, "url": "https://scholarcommons.sc.edu/emec_facpub/927"},
+    {"id": "R6", "authors": null, "title": "Machine learned potential for high-throughput phonon calculations of metal-organic frameworks (MACE-MP-MOF0)", "venue": "Journal article", "doi": null, "url": "https://par.nsf.gov/biblio/10635184"},
+    {"id": "R7", "authors": null, "title": "Benchmarking universal machine learning interatomic potentials for real-time analysis of inelastic neutron scattering data", "venue": "arXiv 2506.01860", "doi": null, "url": "https://arxiv.org/pdf/2506.01860"},
+    {"id": "R8", "authors": "Yang, Yin, Ao, Li", "title": "MACE foundation models for lattice dynamics: a benchmark study on double halide perovskites", "venue": "Phys. Chem. Chem. Phys. (2026)", "doi": null, "url": "https://pubs.rsc.org/en/content/articlehtml/2026/cp/d5cp04693a"},
+    {"id": "R9", "authors": null, "title": "Thermodynamics and kinetics of lithium at the silver-lithium battery interface", "venue": "arXiv 2602.11430", "doi": null, "url": "https://arxiv.org/pdf/2602.11430"},
+    {"id": "R10", "authors": null, "title": "Where foundation machine-learning potentials fail for iron-sulfide defect kinetics", "venue": "ChemRxiv preprint", "doi": "10.26434/chemrxiv.15004824/v1", "url": "https://prereview.org/preprints/doi-10.26434-chemrxiv.15004824-v1"},
+    {"id": "R11", "authors": "Bheemaguli, Xiao, Sai Gautam", "title": "Evaluation of foundational machine learned interatomic potentials for migration barrier predictions", "venue": "Digital Discovery (2026)", "doi": null, "url": "https://pubs.rsc.org/en/content/articlehtml/2026/dd/d5dd00534e"},
+    {"id": "R12", "authors": null, "title": "Fine-tuning universal machine-learned interatomic potentials: a tutorial on methods and applications", "venue": "arXiv 2506.21935", "doi": null, "url": "https://arxiv.org/html/2506.21935v2"},
+    {"id": "R13", "authors": null, "title": "Pushing the limits of unconstrained machine-learned interatomic potentials (LAMBench results)", "venue": "arXiv 2601.16195", "doi": null, "url": "https://arxiv.org/pdf/2601.16195"},
+    {"id": "R14", "authors": "Gao, Wang", "title": "Benchmarking universal machine learning interatomic potentials for elastic property prediction", "venue": "arXiv 2510.22999", "doi": null, "url": "https://arxiv.org/abs/2510.22999"},
+    {"id": "R15", "authors": "Loew, Schmidt, Botti, Marques", "title": "Universal machine learning potentials under pressure", "venue": "arXiv 2508.17792", "doi": null, "url": "https://arxiv.org/abs/2508.17792"},
+    {"id": "R16", "authors": null, "title": "Can MACE potentials accurately describe magnetism and phase stability in Fe-Ni alloys? A systematic benchmark", "venue": "arXiv 2605.28395", "doi": null, "url": "https://www.emergentmind.com/papers/2605.28395"},
+    {"id": "R17", "authors": "ACEsuit", "title": "mace-foundations release notes", "venue": "GitHub", "doi": null, "url": "https://github.com/ACEsuit/mace-foundations"},
+    {"id": "R18", "authors": null, "title": "Transferability of datasets between machine-learning interaction potentials", "venue": "arXiv 2409.05590", "doi": null, "url": "https://arxiv.org/pdf/2409.05590"},
+    {"id": "R19", "authors": "Warford, Thiemann, Csányi", "title": "Better without U: impact of selective Hubbard U correction on foundational MLIPs", "venue": "Peer-reviewed (Cambridge repository)", "doi": null, "url": "https://arxiv.org/abs/2601.21056v1"},
+    {"id": "R20", "authors": "Kaplan et al.", "title": "A foundational potential energy surface dataset for materials (MatPES)", "venue": "arXiv 2503.04070", "doi": null, "url": "https://arxiv.org/pdf/2503.04070"},
+    {"id": "R21", "authors": "Okuno, Charoenphakdee, Hisama, Tsuboi", "title": "MLIP Detective: active failure mode discovery beyond benchmark scores for machine-learning interatomic potentials", "venue": "arXiv 2609.08399", "doi": null, "url": "https://arxiv.org/pdf/2609.08399"},
+    {"id": "R22", "authors": null, "title": "Spin-informed universal graph neural networks for simulating magnetic ordering", "venue": "PNAS", "doi": null, "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12260432/"},
+    {"id": "R23", "authors": null, "title": "Taming multi-domain, -fidelity data: towards foundation models for atomistic scale simulations (MACE-Osaka24)", "venue": "arXiv 2412.13088", "doi": null, "url": "https://arxiv.org/pdf/2412.13088"},
+    {"id": "R24", "authors": null, "title": "MLIP-MC: a framework for adsorption simulations using machine-learned interatomic potentials", "venue": "arXiv 2602.13725", "doi": null, "url": "https://arxiv.org/abs/2602.13725"},
+    {"id": "R25", "authors": "Liu, Zeng, Wang, Zhao", "title": "A study on the fine-tuning performance of universal machine-learned interatomic potentials (U-MLIPs)", "venue": "arXiv 2506.07401", "doi": null, "url": "https://www.arxiv.org/abs/2506.07401"},
+    {"id": "R26", "authors": "Loew et al.", "title": "Universal machine learning interatomic potentials are ready for phonons", "venue": "arXiv 2412.16551", "doi": null, "url": "https://www.alphaxiv.org/overview/2412.16551"}
+  ]
+}
