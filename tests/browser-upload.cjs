@@ -12,7 +12,7 @@ async function serve(route){
   const requested=decodeURIComponent(url.pathname),target=path.resolve(root,'app','.'+(requested==='/'?'/index.html':requested));
   if(!target.startsWith(path.join(root,'app')+path.sep))return route.fulfill({status:403,body:'Forbidden'});
   if(!fs.existsSync(target))return route.fulfill({status:404,body:'Not found'});
-  const types={'.html':'text/html','.js':'application/javascript','.json':'application/json'};
+  const types={'.html':'text/html','.js':'application/javascript','.json':'application/json','.css':'text/css','.png':'image/png'};
   return route.fulfill({status:200,body:fs.readFileSync(target),contentType:types[path.extname(target)] || 'application/octet-stream'});
 }
 function expectText(page,selector,text){return page.waitForFunction(({selector,text})=>{const e=document.querySelector(selector);return e && e.textContent.includes(text);},{selector,text});}
@@ -53,6 +53,37 @@ function file(content=raw,name='metadata.json'){return {name,mimeType:'applicati
   fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
   await page.screenshot({path:path.join(root,'test-results/upload-mobile.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  // Combined workspace routes, extraction-to-draft mapping and retained form state.
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto(base+'/#workspace/contribute');
+  const workspace=page.frameLocator('iframe.workspace-frame');
+  await workspace.locator('#contributionExtractorFile').setInputFiles(file());
+  await workspace.locator('#contributionImportStatus').filter({hasText:'Imported'}).waitFor();
+  assert.equal(await workspace.locator('#cfNumAtoms').inputValue(),'2');
+  assert.equal(await workspace.locator('#cfFormula').inputValue(),'H2');
+  assert.equal(await workspace.locator('#cfRefCode').inputValue(),'');
+  assert.equal(await workspace.locator('#cfEvidenceStatus').inputValue(),'');
+  await workspace.locator('#cfCharge').fill('0');
+  await page.getByRole('link',{name:'UQ benchmarks',exact:true}).click();
+  await workspace.locator('#uqView.active').waitFor();
+  await page.getByRole('link',{name:'Contribute',exact:true}).click();
+  await workspace.locator('#contributeView.active').waitFor();
+  assert.equal(await workspace.locator('#cfCharge').inputValue(),'0');
+  const contributionDownload=page.waitForEvent('download');
+  await workspace.getByRole('button',{name:'Download contribution JSON',exact:true}).click();
+  const draft=JSON.parse(fs.readFileSync(await (await contributionDownload).path(),'utf8'));
+  assert.equal(draft.pillarA_system.charge,0);assert.equal(draft.extractor_record_json,raw);
+  assert.equal(draft.field_provenance.cfNumAtoms.status,'extracted');
+  await page.getByRole('link',{name:'Catalogue & benchmarks',exact:true}).click();
+  await workspace.locator('#catalogView.active').waitFor();
+  await workspace.locator('#viewListBtn').click();
+  await workspace.locator('#tableBody tr').first().waitFor();
+  await page.getByRole('link',{name:'Knowledge graph',exact:true}).click();
+  await workspace.locator('#knowledgeView.active').waitFor();
+  await page.getByRole('link',{name:'Calculation uploads',exact:true}).click();
+  await page.getByLabel('Choose extractor JSON').waitFor();
+  await page.getByRole('link',{name:'Model profiles',exact:true}).click();
+  await page.locator('.model-card').first().waitFor();
   assert.deepEqual(errors,[]);
   await context.close();
 

@@ -1,6 +1,8 @@
 <meta charset="utf-8">
 <title>Usefulness Boundary Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="workspace-shell.css">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -249,7 +251,23 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 </style>
 
 <div class="page">
+  <header class="hub-header">
+    <a class="hub-brand" href="#">Usefulness Boundary Hub</a>
+    <nav id="workspace-nav" class="workspace-nav" aria-label="Hub workspaces">
+      <a href="#" data-section="hub" aria-current="page">Model profiles</a>
+      <a href="#workspace/catalog" data-section="catalog">Catalogue &amp; benchmarks</a>
+      <a href="#workspace/uq" data-section="uq">UQ benchmarks</a>
+      <a href="#workspace/knowledge" data-section="knowledge">Knowledge graph</a>
+      <a href="#workspace/contribute" data-section="contribute">Contribute</a>
+      <a href="#uploads" data-section="uploads">Calculation uploads</a>
+    </nav>
+  </header>
   <main id="main"></main>
+  <section id="workspace-panel" class="workspace-panel" aria-labelledby="workspace-title" hidden>
+    <h1 id="workspace-title"></h1>
+    <p id="workspace-description"></p>
+    <div id="workspace-host"></div>
+  </section>
   <footer>
     <div class="page" style="padding-inline:0">
       <p>Prototype illustration built for a hackathon. Descriptive, Mechanistic and Bayesian content for each model is seeded by the authors; items under "Community" are live and visible to everyone who opens this page.</p>
@@ -261,6 +279,8 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 <script src="import-record.js"></script>
 <script src="run-store.js"></script>
 <script src="uploads.js"></script>
+<script src="workspace-shell.js"></script>
+<script src="community/data/catalog.js"></script>
 <script>
 (function(){
 "use strict";
@@ -469,7 +489,16 @@ function uploadCatalogue(){
         return {id:v.id,name:v.name,architectureId:model.architectureId,kind:"knownVariant",parentModelId:model.id,aliases:v.aliases || [],sha256:v.sha256 || []};
       }));
     });
-  })).then(function(groups){return groups.reduce(function(all,items){return all.concat(items);},[]);});
+  })).then(function(groups){
+    var entries=groups.reduce(function(all,items){return all.concat(items);},[]);
+    /* Add named MACE checkpoints, not benchmark studies, to association choices.
+       They remain catalogue entries and do not acquire curated Model Pages. */
+    ((window.MLIP_CATALOG && window.MLIP_CATALOG.checkpoints)||[]).forEach(function(cp){
+      if(cp.family==="MACE" && !entries.some(function(c){return c.id===cp.id;}))
+        entries.push({id:cp.id,name:cp.name,architectureId:"mace",kind:"catalogue",aliases:[],sha256:[]});
+    });
+    return entries;
+  });
   return uploadCataloguePromise;
 }
 function mountUploads(container,modelId){
@@ -1327,7 +1356,13 @@ function renderFamilyGraphView(main, model, focusNodeId){
 function route(){
   teardownSubs();
   var main = document.getElementById("main");
-  var hash = decodeURIComponent(location.hash.replace(/^#/, ""));
+  var hash;
+  try { hash=decodeURIComponent(location.hash.replace(/^#/, "")); } catch(error){hash="";}
+  if(workspaceShell.select(hash))return;
+  if(hash==="uploads"){
+    main.innerHTML='<h1>Calculation uploads</h1><p class="prose">Collect metadata with the standalone extractor, then import the JSON here. No Hub download is required for extraction.</p><div data-role="uploads"></div>';
+    mountUploads(main.querySelector('[data-role="uploads"]'));return;
+  }
   if (hash.indexOf("graph/") === 0){
     var gParts = hash.slice(6).split("/");
     var gModel = modelById(gParts[0]);
@@ -1343,6 +1378,12 @@ function route(){
   renderHub(main);
 }
 
+var workspaceShell=window.MLIPWorkspaceShell.mount({
+  main:document.getElementById("main"),panel:document.getElementById("workspace-panel"),
+  nav:document.getElementById("workspace-nav"),title:document.getElementById("workspace-title"),
+  description:document.getElementById("workspace-description"),host:document.getElementById("workspace-host"),
+  createFrame:function(){return document.createElement("iframe");}
+});
 window.addEventListener("hashchange", route);
 route();
 

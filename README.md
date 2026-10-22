@@ -1,10 +1,48 @@
-# osi-mlips
+# Usefulness Boundary Hub
 
 The MLIPs team in the Open Scientific Intelligence hackathon 2026.
 
-This branch integrates the **MLIPHub extractor** with the Usefulness Boundary Hub.
-Researchers generate a JSON file, select it in the Hub, and import the structured
-information without retyping it.
+The `usefulness-boundary-hub` branch combines all three development branches:
+`main` supplies the primary GUI, curated Model Pages and their three lenses;
+`contribute` supplies additional workspaces; `feature/extractor-integration`
+supplies the standalone extractor and calculation uploads.
+
+## Open the combined Hub locally
+
+From this branch's repository root:
+
+```bash
+python -m http.server 8000 --directory app
+```
+
+Open **http://localhost:8000/**. The main branch's GUI is the default view.
+
+| Tab | Features |
+| --- | --- |
+| Model profiles | Original curated profiles, Descriptive/Mechanistic/Bayesian lenses, failure modes, lineage and grounded recommender |
+| Catalogue & benchmarks | Extended catalogue, filters, map/table views, six-pillar inspector and shortlist comparisons |
+| UQ benchmarks | Precomputed ammonia studies, plots and training-budget comparisons |
+| Knowledge graph | MACE model, training-data and task relationships |
+| Contribute | Six-pillar draft form, optional extractor import, live preview and downloadable contribution JSON |
+| Calculation uploads | Validate extractor JSON, inspect all metadata and provenance, associate a checkpoint, and save locally or to connected Hub storage |
+
+The contribution workspace stays mounted while changing tabs, preserving its
+draft and shortlist until the page reloads. Curated Model Pages remain distinct
+from extended catalogue entries and benchmark studies.
+
+In **Contribute**, importing extractor JSON fills only matching facts. Unknown
+fields stay blank; reference settings, training counts, symmetry and evidence
+are never filled with example defaults. The downloaded draft includes the exact
+original JSON in `extractor_record_json`, extra metadata included, plus provenance
+for the form fields. Edited fields are marked `user_provided`. This draft is a
+separate format for review; use **Calculation uploads** for the original extractor
+file. Neither exporting a draft nor importing a file changes curated claims.
+
+For deployment, serve the **contents of `app/`**, including its `community/`
+subdirectory. There is no server application to install for a static preview.
+Shared publication still needs the connected storage described below.
+
+See [the combined-workspace design](docs/adr/0009-combined-hub-workspaces.md).
 
 ## Download and install the extractor today
 
@@ -118,6 +156,14 @@ python -m build
 The build produces the standalone wheel in `dist/`. Maintainers can distribute
 that file independently of the Hub, and later publish it through PyPI or attach
 it to a GitHub Release.
+
+Edit `app/community/data/catalog.json` for the extended catalogue and run
+`npm run build:catalog` to regenerate its browser asset. `npm test` checks that
+the two agree. The contribution branch's alternate multi-epoch catalogue is
+preserved under `app/community/data/archive/`; it is not silently substituted for
+the displayed benchmark records. Merging these workspaces does not independently
+validate the inherited scientific results. Main's illustrative UQ content retains
+its original labels.
 
 The browser importer has no runtime dependencies. Its checked-in
 [JSON Schema](app/data/extractor-record.schema.json) is generated from the bundled

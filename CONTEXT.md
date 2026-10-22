@@ -16,7 +16,21 @@ See ADR-0008.
 ## Terms
 
 ### Hub
-The overall site: a directory of Model Pages, browsed as a flat list/grid (no filtering/search, no side-by-side comparison view in the grid itself) — a viewer scans the list and looks at one Model Page at a time. The Recommender (below) is a deliberate, separate exception to this: it's a distinct interaction surface, not part of the grid, allowed to synthesize across Models.
+The Usefulness Boundary Hub: the main branch's directory of curated Model Pages
+remains the default GUI, browsed as a flat list/grid. The Recommender remains a
+separate, curator-grounded interaction surface. Additional workspace tabs provide
+the contribution branch's extended catalogue with filtering/comparison, UQ
+benchmarks, knowledge graph and six-pillar drafting, plus extractor calculation
+uploads. These are explicit additions to the flat-grid rule, not replacements
+for the Model Pages or their three Lenses. See ADR-0009.
+
+### Six-Pillar Contribution
+A draft organising System, Model, Training/Test Data, Calculation, Property/Task
+and Comparison/UQ facts. The six pillars organise metadata; the three Lenses
+interpret checkpoint-specific scientific evidence. An extractor file can populate
+matching draft fields while retaining its complete original JSON and provenance.
+Missing facts remain unknown. Draft export does not publish a Model Page or assert
+that a study has been reproduced.
 
 ### Model (Checkpoint)
 A specific trained, downloadable set of weights for a machine learning interatomic potential (MLIP) — e.g. `MACE-MP-0`, `MACE-OFF23`, `SevenNet-l3i5`. This is the unit the Hub catalogues: one page per Model. "What is this good for / not good for" is a claim about a Model, not about its Architecture, because the claim depends on the Model's specific training data/distribution.

@@ -2,7 +2,8 @@
   "name": "osi-mlips-hub",
   "private": true,
   "scripts": {
-    "test": "node tests/import-record.test.cjs && node tests/upload-ui.test.cjs",
+    "test": "node scripts/build-catalog.cjs --check && node tests/import-record.test.cjs && node tests/upload-ui.test.cjs && node tests/workspaces.test.cjs",
+    "build:catalog": "node scripts/build-catalog.cjs",
     "test:browser": "node tests/browser-upload.cjs"
   },
   "devDependencies": {"playwright": "1.62.1"}
