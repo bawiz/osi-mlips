@@ -402,7 +402,8 @@ function mountKnownFailureModes(container, model){
           '<button type="submit" class="btn">Add evidence</button>' +
           '<p class="form-note" data-note="'+fm.id+'">Visible to everyone who opens this page, right away. No review queue.</p>' +
         '</form>' +
-        '</div>';
+        '</div>' +
+      '</div>';
     }).join("");
 
     container.querySelectorAll("[data-toggle]").forEach(function(btn){
