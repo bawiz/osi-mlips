@@ -24,7 +24,7 @@
         current=workspaceKey(hash);
         options.main.hidden=!!current;options.panel.hidden=!current;
         options.nav.querySelectorAll("a[data-section]").forEach(function(link){
-          var selected=link.getAttribute("data-section")===(current || (hash==="uploads" ? "uploads" : "hub"));
+          var selected=link.getAttribute("data-section")===(current || (hash==="uploads" ? "uploads" : hash.split("/")[0]==="discover" ? "discover" : "hub"));
           if(selected)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");
         });
         if(!current)return false;

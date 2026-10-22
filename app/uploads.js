@@ -136,6 +136,9 @@
       sharedButton=button("Upload to Hub",function(){return save(true);});sharedButton.disabled=!db;
       localButton=button("Save in this browser",function(){return save(false);});
       actions.append(button("Download metadata JSON",function(){downloadJson(rawText,fileName);}),sharedButton,localButton);card.append(actions);
+      var libraryLink=el("a","Explore saved records in the evidence library →");
+      libraryLink.href=Import.value(current,"provenance","synthetic")===true || /^demo-/.test(Import.value(current,"model","id") || "") ? "#discover/uploaded-demo" : "#discover/uploads";
+      card.append(libraryLink);
       card.append(metadata(current));preview.append(card);
     }
     var ready=Promise.resolve(options.catalogue).then(function(items){if(active){catalogue=items || [];renderList();showPreview();}}).catch(function(error){if(active)message("Catalogue could not be loaded: "+error.message,true);});

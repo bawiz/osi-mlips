@@ -17,12 +17,30 @@ See ADR-0008.
 
 ### Hub
 The Usefulness Boundary Hub: the main branch's directory of curated Model Pages
-remains the default GUI, browsed as a flat list/grid. The Recommender remains a
-separate, curator-grounded interaction surface. Additional workspace tabs provide
+remains the default GUI, browsed as a flat list/grid. Find an MLIP is the single
+chat entrypoint and provides structured discovery over a selected evidence library.
+Additional workspace tabs provide
 the contribution branch's extended catalogue with filtering/comparison, UQ
 benchmarks, knowledge graph and six-pillar drafting, plus extractor calculation
 uploads. These are explicit additions to the flat-grid rule, not replacements
-for the Model Pages or their three Lenses. See ADR-0009.
+for the Model Pages or their three Lenses. See ADR-0009 and ADR-0011.
+
+### Evidence Library
+A searchable projection of validated extractor records, retaining original JSON
+and per-field provenance. Browser-local and connected shared records are indexed
+on read. Ordinary contributed records remain unreviewed; synthetic demonstrations
+are explicitly labelled and kept in separate sources. A library record is not a
+curated scientific claim. Training reports provide context, while reported usage
+supports matching only when the same record satisfies the active constraints.
+
+### Find an MLIP
+The current conversational discovery workspace. Converts a supported subset of
+natural language into visible structured filters, finds matching usage records,
+and links candidate checkpoints to those records. Shows evidence gaps rather than
+inventing suitability. Reported failures and conflicting checkpoint identities
+cannot support candidates. Rankings reflect matching record coverage, not measured
+accuracy, model confidence or general superiority. No contributed text is used as
+instructions for an LLM. See ADR-0011.
 
 ### Six-Pillar Contribution
 A draft organising System, Model, Training/Test Data, Calculation, Property/Task
@@ -90,4 +108,9 @@ A relationship from a Known Variant to a Known Failure Mode, meaning this varian
 A derived `{nodes, edges}` structure assembled on demand from the existing typed entities (Model, Known Failure Mode, Evidence, Reference, Mechanistic Finding, Bayesian Annotation, Known Variant, Lineage, Fixes) — not a separate master store, a query/rendering layer over them (see ADR-0004). Powers the family-tree visualization and the Recommender (below). Cross-Model evidence connectivity falls out of it for free: a Reference cited by Evidence under two different Models' Known Failure Modes appears in the Graph View as one Reference node connected to both Models, with no dedicated field for it.
 
 ### Recommender
+Legacy definition below applies to the original main-branch implementation. That
+chat is retained in source but no longer mounted on this branch; Find an MLIP is
+now the single chat surface. ADR-0011 supersedes its entrypoint and evidence scope
+without admitting community text into an LLM prompt.
+
 A multi-turn chat surface on the Hub landing page, separate from the flat browsing grid, where a viewer describes a use case in their own words and gets a reasoned answer about which Model(s) — or, caveated, which Known Variant — fit it. The one place on the Hub explicitly allowed to synthesize across Models (see Hub, above). Strictly grounded: every answer must trace to the Hub's curator-authored content (Models' Descriptive Lens fields, Known Failure Modes with their literature Evidence and grade, Known Variants, Lineage, Fixes, and the Bayesian Lens's precomputed per-purpose UQ data — OOD/decomposition, error detection, calibration, simulation reliability); it states a gap explicitly rather than filling it from Claude's general knowledge, and never draws on live Community Annotations (see ADR-0005, ADR-0006). Answers carry structured citations back to the Model Page or Known Failure Mode they came from, the same way Evidence citations work elsewhere on the Hub; a citation to a Known Variant instead links into the Lineage & Evidence graph, focused on that variant's node, since it has no page of its own. Where it draws on data the Hub itself already marks illustrative/placeholder (e.g. Bayesian Lens OOD/decomposition/error-detection/calibration/simulation-reliability examples), it carries that caveat into the answer rather than citing it with the same confidence as literature-sourced evidence. Ephemeral per viewer — nothing about a Recommender conversation is itself a Community Annotation, and nothing is persisted.

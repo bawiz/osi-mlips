@@ -2,7 +2,8 @@
   "name": "osi-mlips-hub",
   "private": true,
   "scripts": {
-    "test": "node scripts/build-catalog.cjs --check && node tests/import-record.test.cjs && node tests/upload-ui.test.cjs && node tests/workspaces.test.cjs && node tests/directory-extractor.test.cjs",
+    "test": "node scripts/build-catalog.cjs --check && node tests/import-record.test.cjs && node tests/upload-ui.test.cjs && node tests/workspaces.test.cjs && node tests/directory-extractor.test.cjs && node tests/evidence-library.test.cjs && node tests/discovery-ui.test.cjs",
+    "generate:demo": "python3 scripts/generate-demo-library.py",
     "build:catalog": "node scripts/build-catalog.cjs",
     "test:browser": "node tests/browser-upload.cjs"
   },

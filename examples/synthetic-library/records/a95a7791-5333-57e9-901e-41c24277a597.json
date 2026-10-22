@@ -1,0 +1,308 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "a95a7791-5333-57e9-901e-41c24277a597",
+  "created_at": "2026-01-04T16:00:00+00:00",
+  "model": {
+    "id": {
+      "value": "demo-oxide",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "name": {
+      "value": "Demo Oxide",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "architecture_id": {
+      "value": "chgnet",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "implementation_class": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "framework": {
+      "value": "CHGNET",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "architecture": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "supported_atomic_numbers": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "No accessible model metadata"
+    },
+    "cutoff_radius": {
+      "value": 7.0,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "angstrom",
+      "reason": null
+    },
+    "parameter_count": {
+      "value": 750000,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "supported_elements": {
+      "value": [
+        "Fe",
+        "Li",
+        "Ni",
+        "O",
+        "P",
+        "Si"
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "training": {
+    "datasets": {
+      "value": [
+        {
+          "id": "demo-training-oxide",
+          "synthetic": true,
+          "configurations": 1600
+        }
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "hyperparameters": {
+      "value": {
+        "learning_rate": 0.001,
+        "batch_size": 8,
+        "seed": 2
+      },
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "reference_method": {
+      "value": {
+        "code": "DEMO-REFERENCE",
+        "functional": "PBE",
+        "synthetic": true
+      },
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "epochs": {
+      "value": 140,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "optimizer": {
+      "value": "Adam",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "system": {
+    "final.elements": {
+      "value": [
+        "Li",
+        "Fe",
+        "P",
+        "O"
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "final.number_of_atoms": {
+      "value": 64,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "class": {
+      "value": "bulk",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "final.pbc": {
+      "value": [
+        true,
+        true,
+        true
+      ],
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "simulation": {
+    "type": {
+      "value": "single_point",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "temperature_K": {
+      "value": 300,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "K",
+      "reason": null
+    }
+  },
+  "environment": {
+    "model_device": {
+      "value": "cpu",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "hardware_id": {
+      "value": "demo-cpu-01",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "model_dtype": {
+      "value": "float64",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "results": {
+    "status": {
+      "value": "completed",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "scope_wall_time": {
+      "value": 4.59,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "s",
+      "reason": null
+    },
+    "energy": {
+      "value": -6.46,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": "eV",
+      "reason": null
+    }
+  },
+  "reliability": {
+    "accuracy": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    },
+    "uncertainty": {
+      "value": null,
+      "status": "unavailable",
+      "source": "not observed",
+      "unit": null,
+      "reason": "Requires reference data or an explicit diagnostic method"
+    },
+    "reference_comparison": {
+      "value": {
+        "synthetic": true,
+        "benchmark_id": "demo-Fe-Li-O-P-single_point-n64-t300-v1",
+        "reference_id": "demo-reference-PBE",
+        "force_mae": 0.021,
+        "force_unit": "eV/angstrom",
+        "energy_mae_per_atom": 0.003,
+        "energy_unit": "eV/atom"
+      },
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "provenance": {
+    "collector": {
+      "value": "ubh synthetic library generator v1",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "synthetic": {
+      "value": true,
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "evidence_status": {
+      "value": "synthetic_demo",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "record_kind": {
+      "value": "usage",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    },
+    "disclaimer": {
+      "value": "Fictional checkpoint, systems and numbers. Not evidence about any real MLIP or architecture.",
+      "status": "user_provided",
+      "source": "Synthetic demonstration fixture; no model was trained or evaluated",
+      "unit": null,
+      "reason": null
+    }
+  },
+  "artifacts": [],
+  "warnings": [
+    "Synthetic demonstration fixture; no model was trained or evaluated"
+  ]
+}

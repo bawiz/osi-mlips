@@ -19,7 +19,8 @@ Open **http://localhost:8000/**. The main branch's GUI is the default view.
 
 | Tab | Features |
 | --- | --- |
-| Model profiles | Original curated profiles, Descriptive/Mechanistic/Bayesian lenses, failure modes, lineage and grounded recommender |
+| Model profiles | Original curated profiles, Descriptive/Mechanistic/Bayesian lenses, failure modes and lineage |
+| Find an MLIP | One chat interface, structured evidence filters, candidate records, selection funnel, interactive task-coverage matrix and searchable library |
 | Catalogue & benchmarks | Extended catalogue, filters, map/table views, six-pillar inspector and shortlist comparisons |
 | UQ benchmarks | Precomputed ammonia studies, plots and training-budget comparisons |
 | Knowledge graph | MACE model, training-data and task relationships |
@@ -43,6 +44,74 @@ subdirectory. There is no server application to install for a static preview.
 Shared publication still needs the connected storage described below.
 
 See [the combined-workspace design](docs/adr/0009-combined-hub-workspaces.md).
+
+## Sample library and evidence-based discovery
+
+Open **Find an MLIP** or visit **http://localhost:8000/#discover** with the local
+server running. Try:
+
+```text
+Bulk Cu molecular dynamics on CPU at 300 K
+```
+
+Then refine the request, for example `at 600 K with 10,000 atoms`. Active filters
+are visible and individually removable. The chat asks for missing chemistry/task
+information and reports an evidence gap when nothing matches.
+
+The demonstration includes **320 extractor-schema records**: **64 training** and
+**256 usage** reports for eight fictional checkpoints spanning bulk, molecular,
+surface and liquid examples. Sixteen usage reports are fictional failures or
+interruptions, retained in the library and excluded from candidate support.
+Every record is explicitly marked `provenance.synthetic = true`. All checkpoint
+names, systems and numerical results are invented; architecture labels do not
+imply real architecture performance. These records must never be used as real
+benchmark evidence.
+
+- **Filter funnel:** shows how chemistry, task, hardware, temperature and size
+  requirements narrow the loaded usage records.
+- **Task-coverage matrix:** click a cell to select a task and inspect that model's
+  records. Counts indicate reporting coverage, not predictive quality.
+- **Record library:** search, filter training/usage/unclassified records, inspect
+  provenance and download individual JSON files in the extractor's format.
+- **Candidates:** show matching reported systems/conditions and link directly to
+  their source records. Failed/interrupted runs and conflicting checkpoint
+  architectures/weight artifacts cannot support recommendations.
+
+Saved uploads enter the **Contributed records** source automatically when that
+view is opened; the upload preview links directly to it. It reads browser-local
+records and up to 50 recent shared records when the existing backend is connected.
+Uploaded synthetic records have their own source and never mix into the ordinary
+contributed-record recommendations. Original uploaded JSON is preserved. Training
+records are searchable context; they do not substitute for matching usage reports.
+
+The current chat is a deterministic natural-language-to-filter prototype. It
+supports elements/formula, task, system class, Kelvin temperature/range, atom
+count, CPU/GPU and reference functional. Filters must be satisfied by the **same
+usage record**. Element sets match exactly unless the user explicitly says
+`containing Cu` (for example); stoichiometry, charge and local environments are
+not matched. Default size filtering looks for a reported run at least as large
+as the requested size, not a guarantee of capacity. Unknown facts never satisfy
+a requirement. Recorder's `simulation.run_type` and newer `simulation.type`
+records are both understood; missing task/type stays unclassified.
+
+Ranking uses relevant record coverage, not an accuracy or speed leaderboard.
+Comparing numerical performance needs matching benchmark datasets, reference
+methods, structures, units and hardware, plus a scientific review process. This
+prototype does not certify user-reported claims, select a universally best MLIP,
+or turn community text into instructions for an LLM. Main's curator-only chat is
+no longer mounted: the finder is the single chat entrypoint on this branch.
+
+Individual examples live in [examples/synthetic-library/records](examples/synthetic-library/records).
+The lazily loaded UI bundle is `app/data/demo-records.json` (an array of the same
+records; upload individual JSON files, not the aggregate array). Regenerate and
+verify the samples with:
+
+```bash
+npm run generate:demo
+python3 scripts/generate-demo-library.py --check
+```
+
+See [the discovery design](docs/adr/0011-evidence-library-and-discovery.md).
 
 ## Choose how to extract information
 

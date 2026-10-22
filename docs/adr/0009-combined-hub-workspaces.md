@@ -1,5 +1,8 @@
 # Keep main's GUI and add contribution features as workspace tabs
 
+**Update:** ADR-0011 adds the single Find an MLIP chat/evidence workspace and
+replaces the original landing-page chat with a link to it.
+
 The user chose **Usefulness Boundary Hub**, keeping `main` as the primary GUI and
 bringing `contribute` features into extra tabs. The fourth local branch is
 `usefulness-boundary-hub` because Git reference names cannot contain spaces.
