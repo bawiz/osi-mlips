@@ -1,0 +1,6 @@
+{
+  "training": {
+    "datasets": ["Replace with your actual dataset DOI or repository identifier"],
+    "hyperparameters": {"note": "Replace with settings from your training configuration"}
+  }
+}

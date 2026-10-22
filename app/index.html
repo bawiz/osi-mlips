@@ -233,6 +233,19 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 .rec-note{font-size:11px;color:var(--fg-faint);margin-top:6px}
 .fm-card.rec-highlight{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 [hidden]{display:none!important}
+.uploads{border:1px solid var(--border);background:var(--bg-raised);border-radius:10px;padding:20px;margin:26px 0}
+.uploads h2{font-size:20px;margin-bottom:8px}.uploads h3{font-size:16px;margin:18px 0 10px}
+.uploads .muted,.upload-status{font-size:13px;color:var(--fg-muted);margin:10px 0;overflow-wrap:anywhere}
+.upload-instructions{font-size:13px;margin:12px 0;overflow-wrap:anywhere}.upload-instructions code{font-family:var(--font-mono)}
+.upload-file-label,.checkpoint-label{display:flex;flex-direction:column;gap:8px;font-size:13px;margin:16px 0}
+.uploads input[type=file],.uploads select{font:inherit;color:var(--fg);background:var(--bg-sunken);border:1px solid var(--border-strong);padding:10px;border-radius:6px;width:100%;min-width:0}
+.upload-preview{border-top:1px solid var(--border);margin-top:16px;padding-top:2px}.upload-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.upload-error{color:var(--serious)!important}.metadata-group,.uploaded-run{border:1px solid var(--border);border-radius:6px;margin:10px 0;padding:10px}
+.metadata-group summary,.uploaded-run>summary{cursor:pointer;font-size:14px;overflow-wrap:anywhere}.metadata-scroll{overflow:auto;margin-top:10px;max-height:500px}
+.metadata-table{width:100%;border-collapse:collapse;font-size:12px}.metadata-table th,.metadata-table td{text-align:left;vertical-align:top;border-top:1px solid var(--border);padding:9px;overflow-wrap:anywhere;min-width:100px;max-width:340px}
+.metadata-table tbody th{font-family:var(--font-mono);font-weight:400}.metadata-status{font-size:11px}.metadata-source{font-size:11px;color:var(--fg-muted);margin-top:4px}
+.metadata-group pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.run-badge{display:inline-block;color:var(--fg-muted);font-size:12px;margin-left:12px}
+.uploads .btn:disabled{opacity:.5;cursor:default}
 </style>
 
 <div class="page">
@@ -245,6 +258,9 @@ footer p{font-size:12px;color:var(--fg-faint);max-width:560px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+<script src="import-record.js"></script>
+<script src="run-store.js"></script>
+<script src="uploads.js"></script>
 <script>
 (function(){
 "use strict";
@@ -442,6 +458,22 @@ function fetchLiterature(modelId){
   }).catch(function(){ return null; });
   literatureCache[modelId] = p;
   return p;
+}
+
+/* Catalogue identity is distinct from an architecture family or implementation class. */
+var uploadCataloguePromise=null;
+function uploadCatalogue(){
+  if(!uploadCataloguePromise)uploadCataloguePromise=Promise.all(MODELS.map(function(model){
+    return fetchLiterature(model.id).then(function(raw){
+      return [{id:model.id,name:model.name,architectureId:model.architectureId,kind:"model",aliases:model.aliases || [],sha256:model.sha256 || []}].concat(((raw && raw.known_variants)||[]).map(function(v){
+        return {id:v.id,name:v.name,architectureId:model.architectureId,kind:"knownVariant",parentModelId:model.id,aliases:v.aliases || [],sha256:v.sha256 || []};
+      }));
+    });
+  })).then(function(groups){return groups.reduce(function(all,items){return all.concat(items);},[]);});
+  return uploadCataloguePromise;
+}
+function mountUploads(container,modelId){
+  activeUnsubs.push(window.MLIPUploads.mount(container,{db:dbPromise,catalogue:uploadCatalogue(),modelId:modelId || null}));
 }
 
 function adaptLiterature(raw, modelId){
@@ -1225,8 +1257,10 @@ function renderHub(main){
     '<div class="hub-visual">'+renderBoundaryMotif()+'</div>' +
     '<p class="hub-stats"><span class="mono">'+MODELS.length+'</span> model'+(MODELS.length===1?"":"s")+' catalogued · <span class="mono">3</span> lenses each · evidence and findings added live by the community</p>' +
     '<div data-role="recommender"></div>' +
-    '<div class="model-grid" data-role="grid"></div>';
+    '<div class="model-grid" data-role="grid"></div>' +
+    '<div data-role="uploads"></div>';
   mountRecommender(main.querySelector('[data-role="recommender"]'));
+  mountUploads(main.querySelector('[data-role="uploads"]'));
   var grid = main.querySelector('[data-role="grid"]');
   grid.innerHTML = MODELS.map(function(m){
     return '<div class="model-card" data-model="'+m.id+'">' +
@@ -1267,6 +1301,7 @@ function renderModel(main, model, opts){
     });
     var tab = LENS_TABS.filter(function(t){return t.key===key;})[0];
     tab.render(panelEl, model, focusFmId);
+    var uploads=document.createElement("div");panelEl.append(uploads);mountUploads(uploads,model.id);
   }
 
   tabsEl.innerHTML = LENS_TABS.map(function(t){

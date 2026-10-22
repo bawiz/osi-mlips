@@ -2,6 +2,17 @@
 
 Glossary of domain terms for the MLIP Hub project. No implementation details — see `docs/adr/` for decisions with rationale.
 
+### Extracted Run
+A structured record of one MLIP calculation, produced by the extractor and
+imported as JSON without retyping its metadata. Contains accessible model/training,
+system, simulation, environment, and cached-result information with per-field
+source/status/unit and explicit missing values. It may link to an existing Model
+or Known Variant, or stay unassigned when checkpoint identity is unresolved. The
+original record and extra fields are preserved. This is an unreviewed contribution,
+not a Model Page, Known Failure Mode, Mechanistic Finding, or evaluated Bayesian
+study. Extraction provenance is separate from scientific evidence quality.
+See ADR-0008.
+
 ## Terms
 
 ### Hub
