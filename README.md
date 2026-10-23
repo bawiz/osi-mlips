@@ -4,6 +4,8 @@ The MLIPs team's entry for the Open Scientific Intelligence Hackathon 2026.
 
 Live demo: https://35-204-59-194.sslip.io/
 
+![Usefulness Boundary Hub workflow](./UB%20Hub_Flowchart.png)
+
 ## What this is
 
 A catalogue of MLIP (machine learning interatomic potential) checkpoints — MACE, NequIP, and friends — that answers "what is this model actually good for, and where does it break?" For each cataloged **Model** (a specific checkpoint, e.g. `MACE-MP-0`), a **Model Page** covers the same model from three parallel **Lenses**:
