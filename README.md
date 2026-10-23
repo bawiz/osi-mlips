@@ -4,6 +4,8 @@ The MLIPs team's entry for the Open Scientific Intelligence Hackathon 2026.
 
 Live demo: https://35-204-59-194.sslip.io/
 
+Video demo: https://youtu.be/oFlc0wbX8-0
+
 ![Usefulness Boundary Hub workflow](./UB%20Hub_Flowchart.png)
 
 ## What this is
